@@ -17,6 +17,8 @@ namespace ControlPlane
         #region Delegates
         private delegate void Delegate_SendInsideMessage(SignalMessage message);
         private delegate void Delegate_ReceiveInsideMessage(SignalMessage message);
+
+        private delegate void Delegate_ReceiveOutsideMessage(SignalMessage message);
         #endregion
 
         #region Network_Variables
@@ -60,7 +62,7 @@ namespace ControlPlane
         #endregion
 
 
-        #region Outside_Message_Methodes
+        #region Network_Methodes
         private void InitializeSocket()
         {
             try
@@ -88,13 +90,12 @@ namespace ControlPlane
             _buffer = new byte[_bufferSize];
 
             //nasłuchujemy
-            _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacket), null);
+            _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
 
             //LOG
             NodeDeviceClass.MakeSignallingLog("PC", "INFO - Start Listening.");
         }
-
-        public void ReceivedPacket(IAsyncResult res)
+        public void ReceivedPacketCallback(IAsyncResult res)
         {
             int size;
             try
@@ -112,7 +113,7 @@ namespace ControlPlane
                 _receivingEndPoint = (EndPoint)_receivingIPEndPoint;
 
                 //uruchamiam ponowne nasłuchiwanie
-                _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacket), null);
+                _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
 
                 return;
             }
@@ -128,41 +129,68 @@ namespace ControlPlane
             _buffer = new byte[_bufferSize];
 
             //ustawiam odpowiedni recivingEndPoint
-            _receivingIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            _receivingIPEndPoint = new IPEndPoint(IPAddress.Any, _pcPort);
             _receivingEndPoint = (EndPoint)_receivingIPEndPoint;
-
-            //uruchamiam ponowne nasłuchiwanie
-            _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacket), null);
 
             //tworzę logi
             NodeDeviceClass.MakeSignallingLog("PC", "INFO - Received packet from: IP:" + _receivedIPEndPoint.Address + " Port: " + _receivedIPEndPoint.Port);
 
-            //przesyłam otrzymaną wiadomość do metody odpowiedzialnej za przetwarzanie
-            ProcessReceivedPacket(receivedPacket);
-        }
+            //uruchamiam ponowne nasłuchiwanie
+            _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
 
-        public void SendPacket(IAsyncResult res)
+            //przesyłam otrzymaną wiadomość do metody odpowiedzialnej za przetwarzanie
+            ReceiveOutsidePacket(receivedPacket);
+        }
+        public void SendPacketCallback(IAsyncResult res)
         {
             var endPoint = res.AsyncState as IPEndPoint;
-            int size = _pcSocket.EndSendTo(res);
 
             //tworzę logi
-            NodeDeviceClass.MakeSignallingLog("PC", "INFO - Packet send to: IP:" + endPoint.Address + " Port: " + endPoint.Port);
+           NodeDeviceClass.MakeSignallingLog("PC", "INFO - Packet send to: IP:" + endPoint.Address + " Port: " + endPoint.Port);
+            
+            int size = _pcSocket.EndSendTo(res);     
         }
+        #endregion
 
-        public void SendMyPacket(byte[] myPacket, string destinationIP)
+
+        #region Outside_Message_Methodes
+        public void SendOutsidePacket(byte[] myPacket, string destinationIP)
         {
             byte[] packet = myPacket;
             IPEndPoint destinationIpEndPoint = new IPEndPoint(IPAddress.Parse(destinationIP), _pcPort);
 
             //inicjuje start wysyłania przetworzonego pakietu do nadawcy
-            _pcSocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, destinationIpEndPoint, new AsyncCallback(SendPacket), null);
+            _pcSocket.BeginSendTo(packet, 0, packet.Length, SocketFlags.None, destinationIpEndPoint, new AsyncCallback(SendPacketCallback), null);
         }
-
-        private void ProcessReceivedPacket(byte[] receivedPacket)
+        private void ReceiveOutsidePacket(byte[] receivedPacket)
         {
             SignalMessage receivedMessage = ByteToSignalMessage(receivedPacket);
-
+            Delegate_ReceiveOutsideMessage receiveMessage = null;
+            switch (receivedMessage.DestinationModule)
+            {
+                case "CC":
+                    receiveMessage = new Delegate_ReceiveOutsideMessage(CC.ReceiveMessageFromPC);
+                    break;
+                case "RC":
+                    receiveMessage = new Delegate_ReceiveOutsideMessage(RC.ReceiveMessageFromPC);
+                    break;
+                case "LRM":
+                    receiveMessage = new Delegate_ReceiveOutsideMessage(LRM.ReceiveMessageFromPC);
+                    break;
+                default:
+                    NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
+                    break;
+            }
+            if (receiveMessage != null)
+                receiveMessage.BeginInvoke(receivedMessage, new AsyncCallback(ReceiveOutsideMessageCallback), null);
+        }
+        private void ReceiveOutsideMessageCallback(IAsyncResult async)
+        {
+            //tutaj nie chcemy nic robić, po prostu zasoby mają się zwolnić
+            //metoda wywoływana po wyjściu z metody ReceiveMessageFromPC
+            AsyncResult ar = (AsyncResult)async;
+            Delegate_ReceiveOutsideMessage del = (Delegate_ReceiveOutsideMessage)ar.AsyncDelegate;
+            del.EndInvoke(async);
         }
         #endregion
 
@@ -236,7 +264,7 @@ namespace ControlPlane
                 string destinationIP = message.DestinationIpAddress;
                 byte[] data = SignalMessageToByte(message);
 
-                SendMyPacket(data, destinationIP);
+                SendOutsidePacket(data, destinationIP);
             }
         }
         private bool CheckIfMessageIsInsideOrOutside(SignalMessage message)
