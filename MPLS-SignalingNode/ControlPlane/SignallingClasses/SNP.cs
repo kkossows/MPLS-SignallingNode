@@ -3,17 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace ControlPlane
 {
-    class SNP
+    public class SNP
     {
-        private int _snpID;
+        #region Variables
+        [XmlElement("SnpID")]
+        public int _snpID;
 
-        private int _snppID;
-        private int _connectionID;
+        [XmlElement("SnppID")]
+        public int _snppID;
+        [XmlElement("ConnectionID")]
+        public int _connectionID;
 
-        private int _allocatedLabel;
-        private int _allocatedCapacity;
+        [XmlElement("AllocatedLabel")]
+        public int _allocatedLabel;
+        [XmlElement("AllocatedCapacity")]
+        public int _allocatedCapacity;
+        #endregion
+
+        #region Methodes
+        public SNP()
+        {
+
+        }
+        #endregion
     }
 }

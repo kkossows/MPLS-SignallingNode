@@ -36,17 +36,25 @@ namespace ControlPlane
 
         #region Other_Variables
         private string _configurationFilePath;
+
+        private CC _moduleCC;
+        private RC _moduleRC;
+        private LRM _moduleLRM;
         #endregion
 
         #region Properties
         #endregion
-        
+
 
         #region Main_Methodes
-        public PC(string configurationFilePath)
+        public PC(string configurationFilePath, CC ccPointer, RC rcPointer, LRM lrmPointer)
         {
             InitialiseVariables(configurationFilePath);
             InitializeSocket();
+
+            _moduleCC = ccPointer;
+            _moduleRC = rcPointer;
+            _moduleLRM = lrmPointer;
         }
         private void InitialiseVariables(string configurationFilePath)
         {
@@ -168,13 +176,13 @@ namespace ControlPlane
             switch (receivedMessage.DestinationModule)
             {
                 case "CC":
-                    receiveMessage = new Delegate_ReceiveOutsideMessage(CC.ReceiveMessageFromPC);
+                    receiveMessage = new Delegate_ReceiveOutsideMessage(_moduleCC.ReceiveMessageFromPC);
                     break;
                 case "RC":
-                    receiveMessage = new Delegate_ReceiveOutsideMessage(RC.ReceiveMessageFromPC);
+                    receiveMessage = new Delegate_ReceiveOutsideMessage(_moduleRC.ReceiveMessageFromPC);
                     break;
                 case "LRM":
-                    receiveMessage = new Delegate_ReceiveOutsideMessage(LRM.ReceiveMessageFromPC);
+                    receiveMessage = new Delegate_ReceiveOutsideMessage(_moduleLRM.ReceiveMessageFromPC);
                     break;
                 default:
                     NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");

@@ -25,10 +25,15 @@ namespace MPLS_SignalingNode
             DeviceClass.MakeLog("|SIGNALLING| NodeDevise is waking up...");
             DeviceClass.MakeConsoleLog("|SIGNALLING| NodeDevise is waking up...");
 
-            _pc = new PC(_configurationFolderPath + "/PC_config.xml");
             _cc = new CC(_configurationFolderPath + "/CC_config.xml");
             _rc = new RC(_configurationFolderPath + "/RC_config.xml");
             _lrm = new LRM(_configurationFolderPath + "/LRM_config.xml");
+
+            _pc = new PC(_configurationFolderPath + "/PC_config.xml", _cc, _rc, _lrm);
+            //_cc.LocalPC = _pc;
+            //_rc.LocalPC = _pc;
+            _lrm.LocalPC = _pc;
+
 
             StartWorking();
         }

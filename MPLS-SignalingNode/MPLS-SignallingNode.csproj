@@ -45,13 +45,13 @@
   <ItemGroup>
     <Compile Include="ControlPlane\SignallingModules\CC\CC.cs" />
     <Compile Include="ControlPlane\SignallingModules\CC\CC_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\CC\CC_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\CC\CC_XmlSchema.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\LRM\LRM_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\LRM\LRM_XmlSchema.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\PC\PC_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\PC\PC_XmlSchema.cs" />
     <Compile Include="ControlPlane\SignallingModules\RC\RC_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\RC\RC_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\RC_XmlSchema.cs" />
     <Compile Include="DeviceClass.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC.cs" />

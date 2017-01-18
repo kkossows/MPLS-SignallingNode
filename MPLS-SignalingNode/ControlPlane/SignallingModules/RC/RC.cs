@@ -30,7 +30,7 @@ namespace ControlPlane
         {
 
         }
-        public static void ReceiveMessageFromPC(SignalMessage message)
+        public void ReceiveMessageFromPC(SignalMessage message)
         {
 
         }

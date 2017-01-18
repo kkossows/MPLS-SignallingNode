@@ -32,6 +32,9 @@ namespace ControlPlane
         public Pair SnppIdPair { get; set; }
         #endregion
 
+        
+
+
 
         public enum ModuleType
         {
@@ -44,7 +47,7 @@ namespace ControlPlane
             CallRequest, CallAccept,
             
             //LRM
-            LinkConnectionRequest
+            LinkConnectionRequest, SNPNegotiation, SNPNegotiationAccept, LinkConnectionResponse
         };
 
         public struct Pair

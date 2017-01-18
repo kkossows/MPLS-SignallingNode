@@ -3,18 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace ControlPlane
 {
-    class SNPP
+    public class SNPP
     {
-        private int _localID;
-        private string _areaName;
-        private int _areaID;
+        #region Variables
+        [XmlElement("localID")]
+        public int _localID;
+        [XmlElement("areaName")]
+        public string _areaName;
+        [XmlElement("areaID")]
+        public int _areaID;
 
-        private int[] _availableLabels;
-        private int _availableCapacity;
+        [XmlArray("FreeLabel-Table")]
+        [XmlArrayItem("Record", typeof(int))]
+        public List<int> _availableLabels;
+        [XmlElement("AvailableCapacity")]
+        public int _availableCapacity;
 
-        private List<SNP> _allocatedSNP;
+        [XmlArray("AllocatedSNP-List")]
+        [XmlArrayItem("Record", typeof(SNP))]
+        public List<SNP> _allocatedSNP;
+        #endregion
+
+
+        #region Methodes
+        public SNPP()
+        {
+            _availableLabels = new List<int>();
+            _allocatedSNP = new List<SNP>();
+        }
+        #endregion
     }
 }

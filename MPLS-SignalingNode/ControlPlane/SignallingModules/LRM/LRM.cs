@@ -11,54 +11,91 @@ namespace ControlPlane
         private string _localPcIpAddress;
         private string _routingAreaName; 
         private string _administrativeAreaName;
-        private PC _pc;   //agent służący do komunikacji węzlów sterowania 
+        private Dictionary<string, string> _lrmToSubnetworksDictionary;    //słownik zawierający nazwę podsieci wraz z przypisanej do niej adresem agenta LRM
+        private List<SNPP> _mySnppList;
+
+        private PC _pc;
+        #endregion
+
+        #region Properties
+        public PC LocalPC { set { _pc = value; } }
         #endregion
 
 
         #region Main_Methodes
-        public LRM(string configurationFilePath, PC localPC)
+        public LRM(string configurationFilePath)
         {
             InitialiseVariables(configurationFilePath);
-            _pc = localPC;
         }
         private void InitialiseVariables(string configurationFilePath)
         {
             _configurationFilePath = configurationFilePath;
 
-            RC_XmlSchame tmp = new RC_XmlSchame();
-            tmp = RC_LoadingXmlFile.Deserialization(_configurationFilePath);
+            LRM_XmlSchame schema = new LRM_XmlSchame();
+            schema = LRM_LoadingXmlFile.Deserialization(_configurationFilePath);
 
             //miejsce na przypisanie zmiennych
+            _localPcIpAddress = schema.XML_localPcIpAddress;
+            _routingAreaName = schema.XML_routingAreaName;
+            _administrativeAreaName = schema.XML_administrativeAreaName;
+
+            //tworzenie słownika ze struktur
+            _lrmToSubnetworksDictionary = new Dictionary<string, string>;
+            foreach (LrmDescription element in schema.XML_LrmList)
+            {
+                _lrmToSubnetworksDictionary.Add(element.areaName, element.ipAddress);
+            }
+
+            //tworzę słownik SNPP
+
+
         }
-        #endregion
-
-
-        #region Variables2
-
-        private Dictionary<string, string> _lrmToSubnetworksDictionary;    //słownik zawierający nazwę podsieci wraz z przypisanej do niej adresem agenta LRM
         #endregion
 
 
         #region Properties
-
         #endregion
 
 
-
-        public void LocalTopologyMethod()
+        #region Methodes_From_Standardization
+        private void LinkConnectionRequest(int connectionID, SignalMessage.Pair snpp_id_pair)
         {
 
         }
 
+
+
+        private void LocalTopologyMethod()
+        {
+            
+        }
+        #endregion
 
         #region PC_Cooperation_Methodes
         private void SendMessageToPC(SignalMessage message)
         {
 
         }
-        public static void ReceiveMessageFromPC(SignalMessage message)
+        public void ReceiveMessageFromPC(SignalMessage message)
         {
+            switch (message.SignalMessageType)
+            {
+                case SignalMessage.SignalType.LinkConnectionRequest:
+                    LinkConnectionRequest(message.ConnnectionID, message.SnppIdPair);
+                    break;
 
+                case SignalMessage.SignalType.SNPNegotiation:
+
+                    break;
+
+                case SignalMessage.SignalType.SNPNegotiationAccept:
+
+                    break;
+
+                case SignalMessage.SignalType.LinkConnectionResponse:
+
+                    break;
+            }
         }
         #endregion
 
