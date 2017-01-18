@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ControlPlane
 {
@@ -10,8 +6,35 @@ namespace ControlPlane
     {
 
         #region Variables
-        private string _areaName;   //nazwa domeny lub podsieci do której należy dany LRM 
-        private PC _packetController;   //agent służący do komunikacji węzlów sterowania 
+        private string _configurationFilePath;
+
+        private string _localPcIpAddress;
+        private string _routingAreaName; 
+        private string _administrativeAreaName;
+        private PC _pc;   //agent służący do komunikacji węzlów sterowania 
+        #endregion
+
+
+        #region Main_Methodes
+        public LRM(string configurationFilePath, PC localPC)
+        {
+            InitialiseVariables(configurationFilePath);
+            _pc = localPC;
+        }
+        private void InitialiseVariables(string configurationFilePath)
+        {
+            _configurationFilePath = configurationFilePath;
+
+            RC_XmlSchame tmp = new RC_XmlSchame();
+            tmp = RC_LoadingXmlFile.Deserialization(_configurationFilePath);
+
+            //miejsce na przypisanie zmiennych
+        }
+        #endregion
+
+
+        #region Variables2
+
         private Dictionary<string, string> _lrmToSubnetworksDictionary;    //słownik zawierający nazwę podsieci wraz z przypisanej do niej adresem agenta LRM
         #endregion
 
@@ -20,10 +43,6 @@ namespace ControlPlane
 
         #endregion
 
-        public LRM()
-        {
-
-        }
 
 
         public void LocalTopologyMethod()

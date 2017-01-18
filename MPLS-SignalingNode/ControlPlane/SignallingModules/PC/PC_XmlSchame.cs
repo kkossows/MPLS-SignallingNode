@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace MPLS_SignalingNode.ControllPlane.PC
+namespace ControlPlane
 {
     [XmlRoot("PC_Configuration")]
     public class PC_XmlSchame

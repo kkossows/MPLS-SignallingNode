@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MPLS_SignalingNode.ControllPlane.SignallingModules.LRM
+namespace ControlPlane
 {
-    class LRM_XmlSchame
+    class CC_XmlSchame
     {
     }
 }

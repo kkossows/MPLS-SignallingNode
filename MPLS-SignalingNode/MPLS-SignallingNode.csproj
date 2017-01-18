@@ -43,25 +43,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControllPlane\SignallingModules\CC\CC.cs" />
-    <Compile Include="ControllPlane\SignallingModules\CC\CC_LoadingXmlFile.cs" />
-    <Compile Include="ControllPlane\SignallingModules\CC\CC_XmlSchame.cs" />
-    <Compile Include="ControllPlane\SignallingModules\LRM\LRM_LoadingXmlFile.cs" />
-    <Compile Include="ControllPlane\SignallingModules\LRM\LRM_XmlSchame.cs" />
-    <Compile Include="ControllPlane\SignallingModules\PC\PC_LoadingXmlFile.cs" />
-    <Compile Include="ControllPlane\SignallingModules\PC\PC_XmlSchame.cs" />
-    <Compile Include="ControllPlane\SignallingModules\RC\RC_LoadingXmlFile.cs" />
-    <Compile Include="ControllPlane\SignallingModules\RC\RC_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\CC\CC.cs" />
+    <Compile Include="ControlPlane\SignallingModules\CC\CC_LoadingXmlFile.cs" />
+    <Compile Include="ControlPlane\SignallingModules\CC\CC_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\LRM\LRM_LoadingXmlFile.cs" />
+    <Compile Include="ControlPlane\SignallingModules\LRM\LRM_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\PC\PC_LoadingXmlFile.cs" />
+    <Compile Include="ControlPlane\SignallingModules\PC\PC_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\RC_LoadingXmlFile.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\RC_XmlSchame.cs" />
     <Compile Include="DeviceClass.cs" />
-    <Compile Include="ControllPlane\SignallingModules\LRM\LRM.cs" />
-    <Compile Include="ControllPlane\SignallingModules\PC\PC.cs" />
+    <Compile Include="ControlPlane\SignallingModules\LRM\LRM.cs" />
+    <Compile Include="ControlPlane\SignallingModules\PC\PC.cs" />
     <Compile Include="NodeDeviceClass.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ControllPlane\SignallingModules\RC\RC.cs" />
-    <Compile Include="ControllPlane\SignallingClasses\SignalMessage.cs" />
-    <Compile Include="ControllPlane\SignallingClasses\SNP.cs" />
-    <Compile Include="ControllPlane\SignallingClasses\SNPP.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\RC.cs" />
+    <Compile Include="ControlPlane\SignallingClasses\SignalMessage.cs" />
+    <Compile Include="ControlPlane\SignallingClasses\SNP.cs" />
+    <Compile Include="ControlPlane\SignallingClasses\SNPP.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

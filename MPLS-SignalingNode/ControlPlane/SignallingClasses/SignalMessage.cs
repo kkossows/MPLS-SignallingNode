@@ -29,6 +29,7 @@ namespace ControlPlane
         public int LabelIN { get; set; }
         public int LabelOUT { get; set; }
         public int ModificationID { get; set; }
+        public Pair SnppIdPair { get; set; }
         #endregion
 
 
@@ -39,7 +40,17 @@ namespace ControlPlane
 
         public enum SignalType
         {
-            CallRequest, CallAccept
+            //CPCC
+            CallRequest, CallAccept,
+            
+            //LRM
+            LinkConnectionRequest
+        };
+
+        public struct Pair
+        {
+            int first;
+            int second;
         };
 
         public SignalMessage()
@@ -47,4 +58,6 @@ namespace ControlPlane
 
         }
     }
+
+
 }

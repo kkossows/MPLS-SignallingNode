@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MPLS_SignalingNode;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace MPLS_SignalingNode.ControllPlane.PC
+namespace ControlPlane
 {
     public class PC_LoadingXmlFile
     {
