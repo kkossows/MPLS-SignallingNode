@@ -10,7 +10,7 @@ namespace MPLS_SignalingNode
 {
     public class DeviceClass
     {
-        private NodeDeviceClass _signallignNode;
+        private SignallingNodeDeviceClass _signallignNode;
         private string _configurationFolderPath;
 
         #region Private Variables
@@ -25,7 +25,7 @@ namespace MPLS_SignalingNode
             ReadConfigFilePath();
             InitializeLogLastIdNumber();
 
-            _signallignNode = new NodeDeviceClass(_configurationFolderPath);
+            _signallignNode = new SignallingNodeDeviceClass(_configurationFolderPath);
         
         }
 

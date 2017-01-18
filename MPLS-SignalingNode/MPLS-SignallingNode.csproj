@@ -55,7 +55,7 @@
     <Compile Include="DeviceClass.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC.cs" />
-    <Compile Include="NodeDeviceClass.cs" />
+    <Compile Include="SignallingNodeDeviceClass.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ControlPlane\SignallingModules\RC\RC.cs" />

@@ -14,8 +14,8 @@ namespace ControlPlane
         public int _localID;
         [XmlElement("areaName")]
         public string _areaName;
-        [XmlElement("areaID")]
-        public int _areaID;
+        [XmlElement("areaNameSnppID")]
+        public int _areaNameSnppID;
 
         [XmlArray("FreeLabel-Table")]
         [XmlArrayItem("Record", typeof(int))]

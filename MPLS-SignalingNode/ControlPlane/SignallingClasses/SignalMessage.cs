@@ -32,7 +32,24 @@ namespace ControlPlane
         public Pair SnppIdPair { get; set; }
         #endregion
 
-        
+
+        #region LinkConnectionRequest_LinkConnectionResponse
+        public List<SNP> LinkConnection_AllocatedSnpList { get; set; }
+        public List<string> LinkConnection_AllocatedSnpAreaNameList { get; set; }
+        #endregion
+
+        #region SnppNegotiation_SnppNegotiationResponse
+        public int Negotiation_ID { get; set; }
+        public int Negotiation_ConnectionID { get; set; }
+        public int Negotiation_SnppID  { get; set; }
+        public int Negotiation_Label { get; set; }
+        public int Negotiation_Capacity { get; set; }
+
+        public bool Negotiation_isAccepted { get; set; }
+        public SNP Negotiation_AllocatedSNP { get; set; }
+        #endregion
+
+
 
 
 
@@ -52,8 +69,8 @@ namespace ControlPlane
 
         public struct Pair
         {
-            int first;
-            int second;
+            public int first;
+            public int second;
         };
 
         public SignalMessage()

@@ -82,12 +82,12 @@ namespace ControlPlane
             catch
             {
                 //LOG
-                NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Incorrect IP address or port number or these values are already in use.");
+                SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Incorrect IP address or port number or these values are already in use.");
                 //_cloud.StopWorking("Incorrect IP address or port number or these values are already in use.");
             }
 
             //LOG
-            NodeDeviceClass.MakeSignallingLog("PC", "INFO - PC Socket: IP:" + _pcIpAddress + " Port:" + _pcPort);
+            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - PC Socket: IP:" + _pcIpAddress + " Port:" + _pcPort);
 
             //tworzymy punkt końcowy, z którego będziemy odbierali dane (z jakiegokolwiek adresu IP na porcie sygnalizacyjnym _pcPort)
             _receivingIPEndPoint = new IPEndPoint(IPAddress.Any, _pcPort);
@@ -100,7 +100,7 @@ namespace ControlPlane
             _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
 
             //LOG
-            NodeDeviceClass.MakeSignallingLog("PC", "INFO - Start Listening.");
+            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Start Listening.");
         }
         public void ReceivedPacketCallback(IAsyncResult res)
         {
@@ -113,7 +113,7 @@ namespace ControlPlane
             catch
             {
                 IPEndPoint unreachableHost = _receivingEndPoint as IPEndPoint;
-                NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Cannnot send packet to: IP:" + unreachableHost.Address + " Port: " + unreachableHost.Port + ". Destination unreachable (Port unreachable)");
+                SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Cannnot send packet to: IP:" + unreachableHost.Address + " Port: " + unreachableHost.Port + ". Destination unreachable (Port unreachable)");
 
                 //ustawiam odpowiedni recivingEndPoint
                 _receivingIPEndPoint = new IPEndPoint(IPAddress.Any, _pcPort);
@@ -140,7 +140,7 @@ namespace ControlPlane
             _receivingEndPoint = (EndPoint)_receivingIPEndPoint;
 
             //tworzę logi
-            NodeDeviceClass.MakeSignallingLog("PC", "INFO - Received packet from: IP:" + _receivedIPEndPoint.Address + " Port: " + _receivedIPEndPoint.Port);
+            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Received packet from: IP:" + _receivedIPEndPoint.Address + " Port: " + _receivedIPEndPoint.Port);
 
             //uruchamiam ponowne nasłuchiwanie
             _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
@@ -153,7 +153,7 @@ namespace ControlPlane
             var endPoint = res.AsyncState as IPEndPoint;
 
             //tworzę logi
-           NodeDeviceClass.MakeSignallingLog("PC", "INFO - Packet send to: IP:" + endPoint.Address + " Port: " + endPoint.Port);
+           SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Packet send to: IP:" + endPoint.Address + " Port: " + endPoint.Port);
             
             int size = _pcSocket.EndSendTo(res);     
         }
@@ -185,7 +185,7 @@ namespace ControlPlane
                     receiveMessage = new Delegate_ReceiveOutsideMessage(_moduleLRM.ReceiveMessageFromPC);
                     break;
                 default:
-                    NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
+                    SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
                     break;
             }
             if (receiveMessage != null)
@@ -210,7 +210,7 @@ namespace ControlPlane
         }
         private static void SendInsideMessageCallback(IAsyncResult async)
         {
-            NodeDeviceClass.MakeSignallingLog("PC", "INFO - Sent inside message");
+            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Sent inside message");
 
             //metoda wywoływana po wyjściu z metody SendInsideMessage
             AsyncResult ar = (AsyncResult)async;
@@ -235,7 +235,7 @@ namespace ControlPlane
                     receiveMessage = new Delegate_ReceiveInsideMessage(LRM.ReceiveMessageFromPC);
                     break;
                 default:
-                    NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
+                    SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
                     break;
             }
 
@@ -244,7 +244,7 @@ namespace ControlPlane
         }
         private static void ReceiveInsideMessageCallback(IAsyncResult async)
         {
-            NodeDeviceClass.MakeSignallingLog("PC", "INFO - Received inside message");
+            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Received inside message");
 
             //metoda wywoływana po wyjściu z metody ReceiveInsideMessage
             AsyncResult ar = (AsyncResult)async;

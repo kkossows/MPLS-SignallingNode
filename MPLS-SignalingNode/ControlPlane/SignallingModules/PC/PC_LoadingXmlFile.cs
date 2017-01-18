@@ -25,7 +25,7 @@ namespace ControlPlane
             }
             catch (Exception e)
             {
-                NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Deserialization cannot be complited.");
+                SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Deserialization cannot be complited.");
                 return null;
             }
         }
@@ -41,7 +41,7 @@ namespace ControlPlane
             }
             catch (Exception e)
             {
-                NodeDeviceClass.MakeSignallingLog("PC", "ERROR - Serialization cannot be complited.");
+                SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Serialization cannot be complited.");
             }
         }
     }

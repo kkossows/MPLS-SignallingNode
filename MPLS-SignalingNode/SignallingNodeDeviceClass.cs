@@ -2,7 +2,7 @@
 
 namespace MPLS_SignalingNode
 {
-    class NodeDeviceClass
+    class SignallingNodeDeviceClass
     {
         #region Variables
         private CC _cc;
@@ -15,7 +15,7 @@ namespace MPLS_SignalingNode
 
 
         #region Configuration_Methodes
-        public NodeDeviceClass(string configurationFolderPath)
+        public SignallingNodeDeviceClass(string configurationFolderPath)
         {
             _configurationFolderPath = configurationFolderPath;
             InitializeSignallingModules();

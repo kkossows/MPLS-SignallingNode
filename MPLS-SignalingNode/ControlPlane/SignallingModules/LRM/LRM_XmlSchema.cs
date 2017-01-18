@@ -9,11 +9,8 @@ namespace ControlPlane
         [XmlElement("localPcIpAddress")]
         public string XML_localPcIpAddress { get; set; }
 
-        [XmlElement("routingAreaName")]
-        public string XML_routingAreaName { get; set; }
-
-        [XmlElement("administrativeAreaName")]
-        public string XML_administrativeAreaName { get; set; }
+        [XmlElement("areaName")]
+        public string XML_areaName { get; set; }
 
 
         [XmlArray("LRM-List")]
@@ -24,12 +21,14 @@ namespace ControlPlane
         [XmlArrayItem("Record", typeof(SNPP))]
         public List<SNPP> XML_SnppList { get; set; }
 
+
         public LRM_XmlSchame()
         {
             XML_LrmList = new List<LrmDescription>();
             XML_SnppList = new List<SNPP>();
         }
     }
+
 
     public struct LrmDescription
     {
@@ -38,6 +37,7 @@ namespace ControlPlane
         [XmlElement("ipAddress")]
         public string ipAddress;
     }
+
 }
 
 /*
