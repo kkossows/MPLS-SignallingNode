@@ -173,7 +173,7 @@ namespace ControlPlane
         {
             SignalMessage receivedMessage = ByteToSignalMessage(receivedPacket);
             Delegate_ReceiveOutsideMessage receiveMessage = null;
-            switch (receivedMessage.DestinationModule)
+            switch (receivedMessage.General_DestinationModule)
             {
                 case "CC":
                     receiveMessage = new Delegate_ReceiveOutsideMessage(_moduleCC.ReceiveMessageFromPC);
@@ -223,16 +223,16 @@ namespace ControlPlane
         {
             Delegate_ReceiveInsideMessage receiveMessage = null;
 
-            switch (message.DestinationModule)
+            switch (message.General_DestinationModule)
             {
                 case "CC":
-                    receiveMessage = new Delegate_ReceiveInsideMessage(CC.ReceiveMessageFromPC);
+                    receiveMessage = new Delegate_ReceiveInsideMessage(_moduleCC.ReceiveMessageFromPC);
                     break;
                 case "RC":
-                    receiveMessage = new Delegate_ReceiveInsideMessage(RC.ReceiveMessageFromPC);
+                    receiveMessage = new Delegate_ReceiveInsideMessage(_moduleRC.ReceiveMessageFromPC);
                     break;
                 case "LRM":
-                    receiveMessage = new Delegate_ReceiveInsideMessage(LRM.ReceiveMessageFromPC);
+                    receiveMessage = new Delegate_ReceiveInsideMessage(_moduleLRM.ReceiveMessageFromPC);
                     break;
                 default:
                     SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
@@ -268,7 +268,7 @@ namespace ControlPlane
             }
             else
             {
-                string destinationIP = message.DestinationIpAddress;
+                string destinationIP = message.General_DestinationIpAddress;
                 byte[] data = SignalMessageToByte(message);
 
                 SendOutsidePacket(data, destinationIP);
@@ -276,7 +276,7 @@ namespace ControlPlane
         }
         private bool CheckIfMessageIsInsideOrOutside(SignalMessage message)
         {
-            if (_pcIpAddress == message.SourceIpAddress)
+            if (_pcIpAddress == message.General_SourceIpAddress)
                 return true;
             else
                 return false;

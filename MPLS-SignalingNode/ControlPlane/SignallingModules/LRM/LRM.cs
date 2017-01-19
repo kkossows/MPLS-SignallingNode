@@ -67,7 +67,7 @@ namespace ControlPlane
         #region Methodes_From_Standardization
         private void LinkConnectionRequest(int connectionID, SignalMessage.Pair snpp_id_pair, int connectionCapacity)   //DOKOŃCZYC
         {
-            //------------------------------------------------------------------
+            #region Odnajdywanie_SNPP_i_sprawdzenie_czy_istnieją
             //odnajdz pierwszy i drugi SNPP
             SNPP first = null;
             SNPP second = null;
@@ -104,6 +104,7 @@ namespace ControlPlane
 
                 return;
             }
+            #endregion
 
             //------------------------------------------------------------------
             //Sprawdz, czy nie ma jakiegoś SNP związanego z tym connectionID
@@ -173,7 +174,7 @@ namespace ControlPlane
                         Negotiation_SnppID = second._localID,
                         Negotiation_Capacity = connectionCapacity
                     };
-                    _pc.SendSignallingMessage(snmInsideNegotiation);
+                    SendMessageToPC(snmInsideNegotiation);
 
 
                     //wysyłamy SNMNegotiation do pozostałych podsieci jeżeli jest taka konieczność
@@ -194,7 +195,7 @@ namespace ControlPlane
                             Negotiation_SnppID = first._areaNameSnppID,
                             Negotiation_Capacity = connectionCapacity
                         };
-                        _pc.SendSignallingMessage(snmOutFirstNegotiation);
+                        SendMessageToPC(snmOutFirstNegotiation);
                     }
 
                     if (second._areaName != _areaName)
@@ -214,7 +215,7 @@ namespace ControlPlane
                             Negotiation_SnppID = second._areaNameSnppID,
                             Negotiation_Capacity = connectionCapacity
                         };
-                        _pc.SendSignallingMessage(snmOutSecondNegotiation);
+                        SendMessageToPC(snmOutSecondNegotiation);
                     }
 
                     //czekamy biernie na odpowiedzi wszystkie (min 1 max 3)
@@ -267,7 +268,7 @@ namespace ControlPlane
 
                 //------------------------------------------------------------------
                 // wysyłam odpowiedź
-                _pc.SendSignallingMessage(response);
+                SendMessageToPC(response);
             }
         }
         private void SNPNegotiation(int negotiationID, int connectionID, int label, int snppID, int connectionCapacity)
@@ -292,7 +293,7 @@ namespace ControlPlane
                     Negotiation_ID = negotiationID,
                     Negotiation_isAccepted = false
                 };
-                _pc.SendSignallingMessage(rejectedMessage);
+                SendMessageToPC(rejectedMessage);
                 return;
             }
 
@@ -305,7 +306,7 @@ namespace ControlPlane
                     Negotiation_isAccepted = false,
                     Negotiation_AllocatedSNP = null
                 };
-                _pc.SendSignallingMessage(rejectedMessage);
+                SendMessageToPC(rejectedMessage);
             }
             else
             {
@@ -323,7 +324,7 @@ namespace ControlPlane
                     Negotiation_isAccepted = true,
                     Negotiation_AllocatedSNP = requestedSnpp._allocatedSNP[snpID]
                 };
-                _pc.SendSignallingMessage(confirmedMessage);
+                SendMessageToPC(confirmedMessage);
             }
         }
         private void SNPNegotiationAccept(int negotiationID, bool isAccepted, SNP allocatedSnp)
@@ -340,11 +341,12 @@ namespace ControlPlane
         #region PC_Cooperation_Methodes
         private void SendMessageToPC(SignalMessage message)
         {
-
+            _pc.SendSignallingMessage(message);
+            //zrób loga!
         }
         public void ReceiveMessageFromPC(SignalMessage message)
         {
-            switch (message.SignalMessageType)
+            switch (message.General_SignalMessageType)
             {
                 case SignalMessage.SignalType.LinkConnectionRequest:
                     LinkConnectionRequest(message.ConnnectionID, message.SnppIdPair, message.CallingCapacity);

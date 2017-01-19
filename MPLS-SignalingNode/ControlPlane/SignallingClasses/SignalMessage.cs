@@ -9,12 +9,12 @@ namespace ControlPlane
     public class SignalMessage
     {
         #region General
-        public SignalType SignalMessageType { get; set; }
-        public string DestinationIpAddress { get; set; }    //adres docelowego PC
-        public string SourceIpAddress { get; set; }         //adres źródłowego PC
+        public SignalType General_SignalMessageType { get; set; }
+        public string General_DestinationIpAddress { get; set; }    //adres docelowego PC
+        public string General_SourceIpAddress { get; set; }         //adres źródłowego PC
 
-        public string DestinationModule { get; set; }       //nazwa modułu docelowego
-        public string SourceModule { get; set; }            //nazwa modułu źródłowego
+        public string General_DestinationModule { get; set; }       //nazwa modułu docelowego
+        public string General_SourceModule { get; set; }            //nazwa modułu źródłowego
         #endregion
 
         #region Call
@@ -34,6 +34,7 @@ namespace ControlPlane
 
 
         #region LinkConnectionRequest_LinkConnectionResponse
+        public bool LinkConnection_IsAccepted { get; set; }
         public List<SNP> LinkConnection_AllocatedSnpList { get; set; }
         public List<string> LinkConnection_AllocatedSnpAreaNameList { get; set; }
         #endregion
