@@ -7,17 +7,17 @@ namespace ControlPlane
 {
     class CC_LoadingXmlFile
     {
-        public static CC_XmlSchame Deserialization(string configFilePath)
+        public static CC_XmlSchema Deserialization(string configFilePath)
         {
             object obj = new object();
-            XmlSerializer deserializer = new XmlSerializer(typeof(CC_XmlSchame));
+            XmlSerializer deserializer = new XmlSerializer(typeof(CC_XmlSchema));
             try
             {
                 using (TextReader reader = new StreamReader(configFilePath))
                 {
                     obj = deserializer.Deserialize(reader);
                 }
-                return obj as CC_XmlSchame;
+                return obj as CC_XmlSchema;
             }
             catch (Exception e)
             {
@@ -25,9 +25,9 @@ namespace ControlPlane
                 return null;
             }
         }
-        public static void Serialization(string configFilePath, CC_XmlSchame dataSource)
+        public static void Serialization(string configFilePath, CC_XmlSchema dataSource)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(CC_XmlSchame));
+            XmlSerializer serializer = new XmlSerializer(typeof(CC_XmlSchema));
             try
             {
                 using (TextWriter writer = new StreamWriter(configFilePath, false))

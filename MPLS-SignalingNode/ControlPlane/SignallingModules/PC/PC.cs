@@ -31,7 +31,6 @@ namespace ControlPlane
         private EndPoint _receivingEndPoint;
 
         private byte[] _buffer;
-        private int _bufferSize;
         #endregion
 
         #region Other_Variables
@@ -94,7 +93,7 @@ namespace ControlPlane
             _receivingEndPoint = (EndPoint)_receivingIPEndPoint;
 
             //tworzymy bufor nasłuchujący
-            _buffer = new byte[_bufferSize];
+            _buffer = new byte[_pcSocket.ReceiveBufferSize];
 
             //nasłuchujemy
             _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
@@ -102,7 +101,7 @@ namespace ControlPlane
             //LOG
             SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Start Listening.");
         }
-        public void ReceivedPacketCallback(IAsyncResult res)
+        private void ReceivedPacketCallback(IAsyncResult res)
         {
             int size;
             try
@@ -119,6 +118,9 @@ namespace ControlPlane
                 _receivingIPEndPoint = new IPEndPoint(IPAddress.Any, _pcPort);
                 _receivingEndPoint = (EndPoint)_receivingIPEndPoint;
 
+                //tworzymy bufor nasłuchujący
+                _buffer = new byte[_pcSocket.ReceiveBufferSize];
+
                 //uruchamiam ponowne nasłuchiwanie
                 _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
 
@@ -133,7 +135,7 @@ namespace ControlPlane
             IPEndPoint _receivedIPEndPoint = (IPEndPoint)_receivingEndPoint;
 
             //zeruje bufor odbierający
-            _buffer = new byte[_bufferSize];
+            _buffer = new byte[_pcSocket.ReceiveBufferSize];
 
             //ustawiam odpowiedni recivingEndPoint
             _receivingIPEndPoint = new IPEndPoint(IPAddress.Any, _pcPort);
@@ -148,7 +150,7 @@ namespace ControlPlane
             //przesyłam otrzymaną wiadomość do metody odpowiedzialnej za przetwarzanie
             ReceiveOutsidePacket(receivedPacket);
         }
-        public void SendPacketCallback(IAsyncResult res)
+        private void SendPacketCallback(IAsyncResult res)
         {
             var endPoint = res.AsyncState as IPEndPoint;
 
@@ -161,7 +163,7 @@ namespace ControlPlane
 
 
         #region Outside_Message_Methodes
-        public void SendOutsidePacket(byte[] myPacket, string destinationIP)
+        private void SendOutsidePacket(byte[] myPacket, string destinationIP)
         {
             byte[] packet = myPacket;
             IPEndPoint destinationIpEndPoint = new IPEndPoint(IPAddress.Parse(destinationIP), _pcPort);
@@ -254,7 +256,7 @@ namespace ControlPlane
         #endregion
 
 
-        #region Other_Methodes
+        #region Public_methodes_connected_with_sending
         public void SendSignallingMessage(SignalMessage message)
         {
             //trzeba jakoś sprawdzić, czy ma wysyłać wiadomość wewnętrzną, czy zewnętrzną
@@ -276,7 +278,7 @@ namespace ControlPlane
         }
         private bool CheckIfMessageIsInsideOrOutside(SignalMessage message)
         {
-            if (_pcIpAddress == message.General_SourceIpAddress)
+            if (_pcIpAddress == message.General_DestinationIpAddress)
                 return true;
             else
                 return false;

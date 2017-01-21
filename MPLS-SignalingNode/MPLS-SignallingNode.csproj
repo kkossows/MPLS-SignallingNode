@@ -46,6 +46,7 @@
     <Compile Include="ControlPlane\SignallingModules\CC\CC.cs" />
     <Compile Include="ControlPlane\SignallingModules\CC\CC_LoadingXmlFile.cs" />
     <Compile Include="ControlPlane\SignallingModules\CC\CC_XmlSchema.cs" />
+    <Compile Include="ControlPlane\SignallingModules\CC\ConnectionTableRecord.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM_LoadingXmlFile.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM_XmlSchema.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC_LoadingXmlFile.cs" />

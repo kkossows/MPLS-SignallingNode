@@ -30,7 +30,7 @@ namespace MPLS_SignalingNode
             _lrm = new LRM(_configurationFolderPath + "/LRM_config.xml");
 
             _pc = new PC(_configurationFolderPath + "/PC_config.xml", _cc, _rc, _lrm);
-            //_cc.LocalPC = _pc;
+            _cc.LocalPC = _pc;
             //_rc.LocalPC = _pc;
             _lrm.LocalPC = _pc;
 

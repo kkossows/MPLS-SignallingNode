@@ -26,15 +26,23 @@ namespace ControlPlane
 
         #region Connection
         public int ConnnectionID { get; set; }
+        public bool IsAccepted { get; set; }
+        public string CallingIpAddress { get; set; }
+        public string CalledIpAddress { get; set; }
         public int LabelIN { get; set; }
         public int LabelOUT { get; set; }
         public int ModificationID { get; set; }
         public Pair SnppIdPair { get; set; }
+        public SNP SnpIn { get; set; }
+        public SNP SnpOut { get; set; }
+        public List<string> IncludedAreaNames { get; set; }
+        public List<Pair> IncludedSnppIdPairs { get; set; }
+        public SNPP SnppIn { get; set; }
+        public SNPP SnppOut { get; set; }
         #endregion
 
 
         #region LinkConnectionRequest_LinkConnectionResponse
-        public bool LinkConnection_IsAccepted { get; set; }
         public List<SNP> LinkConnection_AllocatedSnpList { get; set; }
         public List<string> LinkConnection_AllocatedSnpAreaNameList { get; set; }
         #endregion
@@ -46,10 +54,8 @@ namespace ControlPlane
         public int Negotiation_Label { get; set; }
         public int Negotiation_Capacity { get; set; }
 
-        public bool Negotiation_isAccepted { get; set; }
         public SNP Negotiation_AllocatedSNP { get; set; }
         #endregion
-
 
 
 
@@ -65,7 +71,12 @@ namespace ControlPlane
             CallRequest, CallAccept,
             
             //LRM
-            LinkConnectionRequest, SNPNegotiation, SNPNegotiationAccept, LinkConnectionResponse
+            LinkConnectionRequest, SNPNegotiation, LinkConnectionDealocation, SNPRealise, LocalTopology,
+            LinkConnectionResponse, SNPNegotiationResponse, LinkConnectionDealocationResponse, SNPRealiseResponse, 
+
+            //CC
+            ConnectionRequest, RouteQueryResponse, PeerCoordination,
+            ConnectionRequestOut, RouteQueryRequest, PeerCoordinationOut
         };
 
         public struct Pair

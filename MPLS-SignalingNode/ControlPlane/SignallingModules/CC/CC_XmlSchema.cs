@@ -1,12 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Xml.Serialization;
 
 namespace ControlPlane
 {
-    class CC_XmlSchame
+    [XmlRoot("CC_Configuration")]
+    public class CC_XmlSchema
     {
+        [XmlElement("localPcIpAddress")]
+        public string XML_localPcIpAddress { get; set; }
+
+        [XmlElement("areaName")]
+        public string XML_areaName { get; set; }
+
+        [XmlElement("isInLsrSubnetwork")]
+        public bool XML_IsInLsrSubnetwork { get; set; }
+
+        public CC_XmlSchema()
+        {
+
+        }
     }
 }
