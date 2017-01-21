@@ -72,42 +72,25 @@ namespace ControlPlane
         #endregion
 
 
-        #region Methodes_From_Standardization
+        #region Incomming_Methodes_From_Standardization
         private void ConnectionRequestFromNcc(int connectionID, string callingIpAddress, string calledIpAddress, int callingCapacity)
         {
-            //wysyłamy wiadomośc do RC z prośbą o wyliczenie ścieżki
-            SignalMessage message = new SignalMessage()
-            {
-                General_SignalMessageType = SignalMessage.SignalType.RouteQueryRequest,
-                General_SourceIpAddress = _localPcIpAddress,
-                General_DestinationIpAddress = _localPcIpAddress,
-                General_SourceModule = "CC",
-                General_DestinationModule = "RC",
-
-                ConnnectionID = connectionID,
-                CallingIpAddress = callingIpAddress,
-                CalledIpAddress = calledIpAddress,
-                CallingCapacity = callingCapacity
-
-            };
-
             //dodajemy wpis w tablicy dla danego connectionID
             _connectionsList.Add(
                 new ConnectionTableRecord
                 {
                     ConnectionID = connectionID,
                     AllocatedCapacity = callingCapacity,
-                    AllocatedSnps = new List<Snp_Pair>(),
-                    AllocatedSnpPairsAreaName = new List<string>(),
+                    AllocatedSnps = new List<List<SNP>>(),
+                    AllocatedSnpAreaName = new List<string>(),
                     Status = "inProgress"
                 });
             
             //dodajemy wpis w słowniku dzięki czemu będziemy wiedzieć, że to connection ID odpowieada temu indexowi w liście
             _indexInListOfConnection.Add(connectionID, _connectionsList.Capacity - 1);
 
-            //wysyłamy żądanie do RC
-            _pc.SendSignallingMessage(message);
-
+            //wysyłamy wiadomosć RouteQuery do RC
+            RouteQuery(connectionID, callingIpAddress, calledIpAddress, callingCapacity);
         }
         private void ConnectionRequest(int connectionID, SNP snpIn, SNP snpOut)
         {
@@ -129,8 +112,8 @@ namespace ControlPlane
         {
             //wyszukujemy wskaźnik na odpowiednią tablicę
             ConnectionTableRecord record = _connectionsList[_indexInListOfConnection[connectionID]];
+  
             //odczytuje przepustoowość z tablicy
-
             int callingCapacity = record.AllocatedCapacity;
 
             #region Empty_AreaName
@@ -141,58 +124,37 @@ namespace ControlPlane
                 record.LocalBoundaryFirstSnppID = includedSnppIdPairs[0].first;
                 record.LocalBoundarySecondSnppID = includedSnppIdPairs[0].second;
 
-                if (includedSnppIdPairs.Count == 1 )
+                //połączenie wewnątrzdomenowe
+                if (includedSnppIdPairs.Count == 1)
                 {
-                    //połączenie wewnątrzdomenowe
-                    //odpytujemy RC o szczegóły połączenia pomiędzy zadną parą SNPP
-                    SignalMessage message = new SignalMessage()
-                    {
-                        General_SignalMessageType = SignalMessage.SignalType.RouteQueryRequest,
-                        General_SourceIpAddress = _localPcIpAddress,
-                        General_DestinationIpAddress = _localPcIpAddress,
-                        General_SourceModule = "CC",
-                        General_DestinationModule = "RC",
-
-                        ConnnectionID = connectionID,
-                        SnppIdPair = new SignalMessage.Pair() {
-                            first = includedSnppIdPairs[0].first,
-                            second = includedSnppIdPairs[0].second
-                        },
-                        CallingCapacity = callingCapacity
-                    };
-
                     //zmieniamy typ połączenia w tablicy na nie międzydomenowy
                     record.IsInterdomain = false;
 
-                    //wysyłamy żądanie do RC
-                    _pc.SendSignallingMessage(message);
+                    //odpytujemy RC o szczegóły połączenia pomiędzy zadną parą SNPP
+                    RouteQuery(
+                        connectionID,
+                        new SignalMessage.Pair() { first = includedSnppIdPairs[0].first, second = includedSnppIdPairs[0].second },
+                        callingCapacity);
+
+                    //wyjdź z metody
+                    return;
                 }
+
+                //połączenie międzycdomenowe
                 else
                 {
-                    //połączenie międzydomenowe
-                    //tutaj musimy wysłac druga parę do własnego LRM aby otrzymać etykietę niezbędną do PeerCoordination
-                    SignalMessage message = new SignalMessage()
-                    {
-                        General_SignalMessageType = SignalMessage.SignalType.LinkConnectionRequest,
-                        General_SourceIpAddress = _localPcIpAddress,
-                        General_DestinationIpAddress = _localPcIpAddress,
-                        General_SourceModule = "CC",
-                        General_DestinationModule = "LRM",
-
-                        ConnnectionID = connectionID,
-                        SnppIdPair = new SignalMessage.Pair{
-                            first = includedSnppIdPairs[1].first,
-                            second = includedSnppIdPairs[1].first
-                        },
-                        CallingCapacity = callingCapacity
-                    };
-
                     //zmieniamy typ połączenia w tablicy na nie międzydomenowy
                     record.IsInterdomain = true;
                     record.Status = "establishingInterdomainLink";
 
-                    //wysyłamy żądanie do RC
-                    _pc.SendSignallingMessage(message);
+                    //tutaj musimy wysłac druga parę do własnego LRM aby otrzymać etykietę niezbędną do PeerCoordination
+                    LinkConnectionRequest(
+                        connectionID,
+                        new SignalMessage.Pair() { first = includedSnppIdPairs[1].first, second = includedSnppIdPairs[1].second },
+                        callingCapacity);
+
+                    //wyjdź z metody
+                    return;
                 }
             }
             #endregion
@@ -201,34 +163,21 @@ namespace ControlPlane
             else
             {
                 //tworzymy liste nazw i o tym samym id wskaznik na liste SNP
-                for (int i = 0; i < includedAreaNames.Capacity; i++)
+                for (int i = 0; i < includedAreaNames.Count; i++)
                 {
-                    record.AllocatedSnpPairsAreaName.Add(includedAreaNames[i]);
+                    record.AllocatedSnpAreaName.Add(includedAreaNames[i]);
                     record.AllocatedSnps.Add(new List<SNP>());
                 }
 
                 //uzupełniamy liste par snpp do zaalokowania
-                for (int i = 0; i < includedSnppIdPairs.Capacity; i++)
+                for (int i = 0; i < includedSnppIdPairs.Count; i++)
                     record.SnppIdPairToAllocate.Add(includedSnppIdPairs[i]);
 
                 //wysyłamy pierwszą parę do LRM aby zaalokował (nastepne będą wysyłane jak dostaniemy odpowiedź)
-                SignalMessage message = new SignalMessage()
-                {
-                    General_SignalMessageType = SignalMessage.SignalType.RouteQueryRequest,
-                    General_SourceIpAddress = _localPcIpAddress,
-                    General_DestinationIpAddress = _localPcIpAddress,
-                    General_SourceModule = "CC",
-                    General_DestinationModule = "LRM",
+                LinkConnectionRequest(connectionID, record.SnppIdPairToAllocate[0], callingCapacity);
 
-                    ConnnectionID = connectionID,
-                    SnppIdPair = record.SnppIdPairToAllocate[0],
-                    CallingCapacity = callingCapacity
-
-                };
-
-                //usuwamy parę z listy i wysyłamy
+                //usuwamy parę z listy
                 record.SnppIdPairToAllocate.RemoveAt(0);
-                _pc.SendSignallingMessage(message);
             }
             #endregion
         }
@@ -238,38 +187,39 @@ namespace ControlPlane
             //wyszukujemy wskaźnik na odpowiednią tablicę
             ConnectionTableRecord record = _connectionsList[_indexInListOfConnection[connectionID]];
 
-            #region Step_1
+            #region Step_1-Sprawdz_status_odpowiedzi
             if(isAccepted)
             {
                 //odpowiedź jest pozytywna - udało się zaalokować łącze
                 for(int i=0; i< receivedSnpsAreaNames.Count; i++)
                 {
-                    int index = record.AllocatedSnpPairsAreaName.IndexOf(receivedSnpsAreaNames[i]);
+                    int index = record.AllocatedSnpAreaName.IndexOf(receivedSnpsAreaNames[i]);
                     record.AllocatedSnps[i].Add(receivedSnps[i]);
                 }
-
             }
             else
             {
                 //odpowiedź jest negatywna - nie udało się zaalowkować łącza
+                SignallingNodeDeviceClass.MakeSignallingLog("CC", "ERROR - LinkConnectionRequest is not accepted");
+                SignallingNodeDeviceClass.MakeSignallingConsoleLog("CC", "ERROR - LinkConnectionRequest is not accepted");
 
+
+                //dopisać kod, który wykonuje sie w sytuacji odmowy alokacji
+                //...
+                //...
+                //...?
             }
             #endregion
 
 
-            #region Step_2
+            #region Step_2-Sprawdź_status_rekordu
             if (record.IsInterdomain && record.Status == "establishingInterdomainLink")
             {
-
-
-
-
-
-
+                
                 //Wyslij do RC pierwsza parę złożoną ze zmiennych boudaryFirst boundarySecond znajdującej się w rekordzie
                 SignalMessage message = new SignalMessage()
                 {
-                    General_SignalMessageType = SignalMessage.SignalType.RouteQueryRequest,
+                    General_SignalMessageType = SignalMessage.SignalType.RouteQuery,
                     General_SourceIpAddress = _localPcIpAddress,
                     General_DestinationIpAddress = _localPcIpAddress,
                     General_SourceModule = "CC",
@@ -285,19 +235,106 @@ namespace ControlPlane
                 };
 
             }
+            else
+            {
+                //sprawdź, czy mamy jeszcze jakieś łacza lokalnie do alokowania
+                if (record.SnppIdPairToAllocate.Count != 0)
+                {
+                    SignalMessage.Pair snppPairToAllocate = record.SnppIdPairToAllocate[0];
+                    LinkConnectionRequest(connectionID, snppPairToAllocate, record.AllocatedCapacity);
+
+                    //jeżeli mamy to usuń to łącze
+                    record.SnppIdPairToAllocate.Remove(snppPairToAllocate);
+
+                    //wyjdź z metody
+                    return;
+                }
+                else
+                {
+                    //ustaw nowy status rekordu oznaczający, że wszystkie lokalne linki zostały ustawione
+                    record.Status = "localLinksAllocated";
+
+                    //sprawdź, czy nasze połaczenie przechodzi przez jakieś podsieci
+                    if(record.AllocatedSnpAreaName.Count > 1)   //zawsze będzie nasza podsieć
+                    {
+
+                    }
+                    else
+                    {
+                        //jak nie ma już żadnej podsieci to znaczy, że zakończyliśmy działania tego CC i wysyłamy ConnectionResponse
+                        //ConnectionResponse(connectionID, true, )
+                    }
+                }
+
+            }
+            #endregion
         }
         #endregion
 
 
+        #region Outcomming_Methodes_From_Standardization
+        private void RouteQuery(int connectionID, string callingIpAddress, string calledIpAddress, int callingCapacity)
+        {
+            //wysyłamy wiadomośc do RC z prośbą o wyliczenie ścieżki
+            SignalMessage message = new SignalMessage()
+            {
+                General_SignalMessageType = SignalMessage.SignalType.RouteQuery,
+                General_SourceIpAddress = _localPcIpAddress,
+                General_DestinationIpAddress = _localPcIpAddress,
+                General_SourceModule = "CC",
+                General_DestinationModule = "RC",
+
+                ConnnectionID = connectionID,
+                CallingIpAddress = callingIpAddress,
+                CalledIpAddress = calledIpAddress,
+                CallingCapacity = callingCapacity
+            };
+
+            //wysyłamy żądanie do RC
+            _pc.SendSignallingMessage(message);
+        }
+        private void RouteQuery(int connectionID, SignalMessage.Pair snppIdPair, int callingCapacity)
+        {
+            SignalMessage message = new SignalMessage()
+            {
+                General_SignalMessageType = SignalMessage.SignalType.RouteQuery,
+                General_SourceIpAddress = _localPcIpAddress,
+                General_DestinationIpAddress = _localPcIpAddress,
+                General_SourceModule = "CC",
+                General_DestinationModule = "RC",
+
+                ConnnectionID = connectionID,
+                SnppIdPair = snppIdPair,
+                CallingCapacity = callingCapacity
+            };
+
+            //wysyłam wiadomość
+            _pc.SendSignallingMessage(message);
+        }
+
+        private void LinkConnectionRequest(int connectionID, SignalMessage.Pair connectionSnppIdPair, int callingCapacity)
+        {
+            SignalMessage message = new SignalMessage()
+            {
+                General_SignalMessageType = SignalMessage.SignalType.LinkConnectionRequest,
+                General_SourceIpAddress = _localPcIpAddress,
+                General_DestinationIpAddress = _localPcIpAddress,
+                General_SourceModule = "CC",
+                General_DestinationModule = "LRM",
+
+                ConnnectionID = connectionID,
+                SnppIdPair = connectionSnppIdPair,
+                CallingCapacity = callingCapacity
+            };
+
+            //wysyłamy żądanie do RC
+            _pc.SendSignallingMessage(message);
+        }
 
 
 
 
         #endregion
-
-
-
-
 
         #region Other_Methodes
         private void MakeNewFibRecords(int interfaceIn, int labelIn, int interfaceOut, int labelOut, string operation)
@@ -307,25 +344,3 @@ namespace ControlPlane
         #endregion
     }
 }
-
-
-
-/*
- * Wysyłane metody:
- * -> RouteQueryRequest
- * -> ConnectionRequest
- * -> LinkConnectionRequest
- * -> PeerCoordination
- * -> ConnectionRequestOut
- * -> PeerCoordinationOut
- * 
- * Odbierane metody:
- * -> ConnectionRequest
- * -> RouteQueryResponse
- * -> LinkConnectionResponse
- * -> PeerCoordination
- * -> ConnectionRequestOut
- * -> PeerCoordinationOut
- * 
-
- *

@@ -13,7 +13,7 @@ namespace ControlPlane
         public int LocalBoundaryFirstSnppID { get; set; }
         public int LocalBoundarySecondSnppID { get; set; }
         public List<List<SNP>> AllocatedSnps { get; set; }
-        public List<string> AllocatedSnpPairsAreaName { get; set; }
+        public List<string> AllocatedSnpAreaName { get; set; }
         public string Status { get; set; }
         public bool IsInterdomain { get; set; }
 
@@ -22,7 +22,7 @@ namespace ControlPlane
         public ConnectionTableRecord()
         {
             AllocatedSnps = new List<List<SNP>>();
-            AllocatedSnpPairsAreaName = new List<string>();
+            AllocatedSnpAreaName = new List<string>();
         }
 
     }
