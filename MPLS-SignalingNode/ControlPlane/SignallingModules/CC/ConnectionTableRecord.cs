@@ -8,16 +8,19 @@ namespace ControlPlane
 {
     class ConnectionTableRecord
     {
+        //zmienne docelowe
         public int ConnectionID { get; set; }
         public int AllocatedCapacity { get; set; }
         public int LocalBoundaryFirstSnppID { get; set; }
         public int LocalBoundarySecondSnppID { get; set; }
         public List<List<SNP>> AllocatedSnps { get; set; }
         public List<string> AllocatedSnpAreaName { get; set; }
-        public string Status { get; set; }
         public bool IsInterdomain { get; set; }
+        public string Status { get; set; }
 
-        public List<SignalMessage.Pair> SnppIdPairToAllocate { get; set; }
+        //zmienne pomocnicze używane w procesie zestawiania 
+        public int NumberOfRequest { get; set; }
+        public int NumberOfResponse { get; set; }
 
         public ConnectionTableRecord()
         {

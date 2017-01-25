@@ -76,7 +76,7 @@ namespace ControlPlane
 
             //CC
             ConnectionRequest, RouteQueryResponse, PeerCoordination,
-            ConnectionRequestOut, RouteQuery, PeerCoordinationOut
+            ConnectionResponse, RouteQuery, PeerCoordinationOut
         };
 
         public struct Pair
