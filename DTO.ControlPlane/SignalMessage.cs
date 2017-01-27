@@ -58,7 +58,13 @@ namespace DTO.ControlPlane
         public SNP Negotiation_AllocatedSNP { get; set; }
         #endregion
 
-
+        #region 
+        public int LocalTopology_SnppID { get; set; }
+        public int LocalTopology_availibleCapacity { get; set; }
+        public List<int> LocalTopology_reachableSnppIdList { get; set; }
+        public string LocalTopology_areaName { get; set; }
+ 
+        #endregion
 
         [Serializable]
         public enum ModuleType

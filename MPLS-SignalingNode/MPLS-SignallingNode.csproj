@@ -51,8 +51,11 @@
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM_XmlSchema.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC_LoadingXmlFile.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC_XmlSchema.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Edge.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Graph.cs" />
     <Compile Include="ControlPlane\SignallingModules\RC\RC_LoadingXmlFile.cs" />
     <Compile Include="ControlPlane\SignallingModules\RC\RC_XmlSchema.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Vertex.cs" />
     <Compile Include="DeviceClass.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC.cs" />

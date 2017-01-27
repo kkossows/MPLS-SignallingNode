@@ -10,6 +10,7 @@ namespace ControlPlane
         #region Variables
         private string _configurationFilePath;
         private string _localPcIpAddress;
+        
 
         private PC _pc;
         #endregion
@@ -53,8 +54,8 @@ namespace ControlPlane
                     else
                         RouteQuery(message.ConnnectionID, message.SnppIdPair, message.CallingCapacity, message.General_SourceIpAddress);
                     break;
-                case SignalMessage.SignalType.LinkConnectionResponse:
-                    
+                case SignalMessage.SignalType.LocalTopology:
+                    LocalTopology(message.LocalTopology_SnppID, message.LocalTopology_availibleCapacity, message.LocalTopology_reachableSnppIdList, message.LocalTopology_areaName);
                     break;
             }
         }
@@ -109,6 +110,12 @@ namespace ControlPlane
                         "SN_1_3"
                     });
         }
+
+        public void LocalTopology(int snppId, int availibleCapacity, List<int> reachableSnppIdList, string areaName)
+        {
+
+        }
+
         #endregion
 
 
@@ -132,6 +139,8 @@ namespace ControlPlane
             //wysyłamy żądanie do RC
             _pc.SendSignallingMessage(message);
         }
+
+
 
         #endregion
     }
