@@ -35,12 +35,19 @@ namespace MPLS_SignalingNode.ControlPlane.SignallingModules.RC
             get { return weight; }
             set { weight = value; }
         }
-
-        public Edge(int id, Vertex begin, Vertex end)
+        private int capacity;
+        public int Capacity
+        {
+            get { return capacity;}
+            set { capacity = value; }
+        }
+        public Edge(int id, Vertex begin, Vertex end, int capacity, double weight)
         {
             this.id = id;
             this.begin = begin;
             this.end = end;
+            this.weight = weight;
+            this.capacity = capacity;
         }
     }
 }

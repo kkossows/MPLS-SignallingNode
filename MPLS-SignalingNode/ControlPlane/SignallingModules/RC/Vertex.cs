@@ -21,7 +21,12 @@ namespace MPLS_SignalingNode.ControlPlane.SignallingModules.RC
             get { return prev; }
             set { prev = value; }
         }
-
+        private int capacity;
+        public int Capacity
+        {
+            get { return capacity; }
+            set { capacity = value; }
+        }
         private double cumulatedWeight;
         public double CumulatedWeight
         {
@@ -50,10 +55,11 @@ namespace MPLS_SignalingNode.ControlPlane.SignallingModules.RC
             this.edgesOut = new Edge[0];
         }
 
-        public Vertex(int id)
+        public Vertex(int id, int capacity)
         {
             this.id = id;
             this.edgesOut = new Edge[0];
+            this.capacity = capacity;
         }
     
     }
