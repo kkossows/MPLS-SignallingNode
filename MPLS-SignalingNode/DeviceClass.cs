@@ -38,15 +38,16 @@ namespace MPLS_SignalingNode
                 fileConfigurationPath = _configurationFolderPath + "/LSR_config.xml";
             Console.WriteLine();
 
-            bool fileNotExist = !File.Exists(fileConfigurationPath);
+            fileLogPath = _configurationFolderPath + "/logFile.txt";
 
-            while (fileNotExist)
-            {
-                Console.WriteLine("Cannot find the file. Please enter the right path.");
-                fileConfigurationPath = Console.ReadLine();
-                fileNotExist = !File.Exists(fileConfigurationPath);
-                Console.WriteLine();
-            }
+            //bool fileNotExist = !File.Exists(fileConfigurationPath);
+            //while (fileNotExist)
+            //{
+            //    Console.WriteLine("Cannot find the file. Please enter the right path.");
+            //    fileConfigurationPath = Console.ReadLine();
+            //    fileNotExist = !File.Exists(fileConfigurationPath);
+            //    Console.WriteLine();
+            //}
         }
 
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
+using DTO.ControlPlane;
 
 namespace ControlPlane
 {

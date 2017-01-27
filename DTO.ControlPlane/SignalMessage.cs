@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ControlPlane
+namespace DTO.ControlPlane
 {
+    [Serializable]
     public class SignalMessage
     {
         #region General
@@ -59,12 +60,13 @@ namespace ControlPlane
 
 
 
-
+        [Serializable]
         public enum ModuleType
         {
             RC, CC, LRM, NCC, CPCC
         };
 
+        [Serializable]
         public enum SignalType
         {
             //CPCC
@@ -79,6 +81,7 @@ namespace ControlPlane
             ConnectionResponse, RouteQuery, PeerCoordinationOut
         };
 
+        [Serializable]
         public struct Pair
         {
             public int first;

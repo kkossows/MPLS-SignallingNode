@@ -1,6 +1,6 @@
-﻿
-using MPLS_SignalingNode;
+﻿using MPLS_SignalingNode;
 using System.Collections.Generic;
+using DTO.ControlPlane;
 
 namespace ControlPlane
 {
@@ -347,13 +347,17 @@ namespace ControlPlane
                         string destinationIpAddress = _connectedCcDestinationAddrress[record.AllocatedSnpAreaName[i]];
 
                         //wyślij do CC niższego rzędu wiadomośc connectionRequest
-                        ConnectionRequest(connectionID, snpIn, snpOut, destinationIpAddress);
+                        ConnectionRequest(connectionID, snpIn, snpOut, record.AllocatedCapacity, destinationIpAddress);
                     }
                 }
                 else
                 {
-                    //jak nie ma już żadnej podsieci to znaczy, że zakończyliśmy działania tego CC i wysyłamy ConnectionResponse
-                    ConnectionResponse(connectionID, true);
+                    //jak nie ma już żadnej podsieci to znaczy, że zakończyliśmy działania tego CC i wysyłamy ConnectionResponse do CC wyższego
+
+                    //znajdź adres docelowy PC obsługującego CC wyższego rzędu związanego z daną areaname
+                    string destinationIpAddress = _connectedCcDestinationAddrress[_higherAreaName];
+
+                    ConnectionResponse(connectionID, true, destinationIpAddress);
 
                     //zmień status na established
                     record.Status = "established";

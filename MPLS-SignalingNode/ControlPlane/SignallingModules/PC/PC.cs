@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization.Formatters.Binary;
-
+using DTO.ControlPlane;
 
 //Tutaj musze zrobić wysyłanie pakietów 
 namespace ControlPlane

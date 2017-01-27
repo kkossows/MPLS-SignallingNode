@@ -4,17 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0D1EE600-1C67-4768-9997-AE3DC0C643C6}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{EBFADE18-9C48-4162-88B1-10A6B233C334}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MPLS_SignalingNode</RootNamespace>
-    <AssemblyName>MPLS-SignalingNode</AssemblyName>
+    <RootNamespace>DTO.ControlPlane</RootNamespace>
+    <AssemblyName>DTO.ControlPlane</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -43,32 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControlPlane\SignallingModules\CC\CC.cs" />
-    <Compile Include="ControlPlane\SignallingModules\CC\CC_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\CC\CC_XmlSchema.cs" />
-    <Compile Include="ControlPlane\SignallingModules\CC\ConnectionTableRecord.cs" />
-    <Compile Include="ControlPlane\SignallingModules\LRM\LRM_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\LRM\LRM_XmlSchema.cs" />
-    <Compile Include="ControlPlane\SignallingModules\PC\PC_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\PC\PC_XmlSchema.cs" />
-    <Compile Include="ControlPlane\SignallingModules\RC\RC_LoadingXmlFile.cs" />
-    <Compile Include="ControlPlane\SignallingModules\RC\RC_XmlSchema.cs" />
-    <Compile Include="DeviceClass.cs" />
-    <Compile Include="ControlPlane\SignallingModules\LRM\LRM.cs" />
-    <Compile Include="ControlPlane\SignallingModules\PC\PC.cs" />
-    <Compile Include="SignallingNodeDeviceClass.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ControlPlane\SignallingModules\RC\RC.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DTO.ControlPlane\DTO.ControlPlane.csproj">
-      <Project>{ebfade18-9c48-4162-88b1-10a6b233c334}</Project>
-      <Name>DTO.ControlPlane</Name>
-    </ProjectReference>
+    <Compile Include="SignalMessage.cs" />
+    <Compile Include="SNP.cs" />
+    <Compile Include="SNPP.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

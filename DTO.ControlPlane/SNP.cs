@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace ControlPlane
+namespace DTO.ControlPlane
 {
+    [Serializable]
     public class SNP
     {
         #region Variables

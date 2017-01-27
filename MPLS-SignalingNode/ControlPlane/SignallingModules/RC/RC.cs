@@ -1,7 +1,7 @@
-﻿
-using System;
+﻿using System;
 using MPLS_SignalingNode;
 using System.Collections.Generic;
+using DTO.ControlPlane;
 
 namespace ControlPlane
 {
@@ -18,7 +18,7 @@ namespace ControlPlane
         #region Main_Methodes
         public RC(string configurationFilePath)
         {
-            InitialiseVariables(configurationFilePath);
+            //InitialiseVariables(configurationFilePath);
         }
         private void InitialiseVariables(string configurationFilePath)
         {
@@ -68,7 +68,7 @@ namespace ControlPlane
         //sourceIpadrees dodany w celach testowych!!!
         private void RouteQuery(int connectionID, string callingIpAddress, string calledIpAddress, int callingCapacity)
         {
-            if (connectionID == 111 && calledIpAddress == "127.0.1.101" && calledIpAddress == "127.0.1.102" && callingCapacity == 1000)
+            if (connectionID == 111 && callingIpAddress == "127.0.1.101" && calledIpAddress == "127.0.1.102" && callingCapacity == 1000)
                 RouteQueryResponse(
                     111,
                     new List<SignalMessage.Pair>()

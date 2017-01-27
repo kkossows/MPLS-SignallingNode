@@ -12,6 +12,7 @@ namespace MPLS_SignalingNode
         static void Main(string[] args)
         {
             DeviceClass device = new DeviceClass();
+            device.StartWorking();
         }
     }
 }
