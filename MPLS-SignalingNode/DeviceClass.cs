@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ControlPlane;
+using System.Threading;
 
 namespace MPLS_SignalingNode
 {
@@ -17,6 +18,8 @@ namespace MPLS_SignalingNode
         private static string fileLogPath;
         private static int logID;
         private string fileConfigurationPath;
+
+        private static ReaderWriterLockSlim _writeLock = new ReaderWriterLockSlim();
         #endregion
 
 
@@ -89,15 +92,30 @@ namespace MPLS_SignalingNode
         #region Logs
         public static void MakeLog(string logDescription)
         {
-            string log;
+            string log = "#" + logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
+            logID++;
 
-            using (StreamWriter file = new StreamWriter(fileLogPath, true))
-            {
-                log = "#" + logID + " | " + DateTime.Now.ToString("hh:mm:ss") + " " + logDescription;
-                file.WriteLine(log);
-                logID++;
-            }
+            WriteToFileThreadSafe(log, fileLogPath);
         }
+        public static void WriteToFileThreadSafe(string text, string path)
+        {
+            // Set Status to Locked
+            _writeLock.EnterWriteLock();
+            try
+            {
+                // Append text to the file
+                using (StreamWriter sw = File.AppendText(path))
+                {
+                    sw.WriteLine(text);
+                    sw.Close();
+                }
+            }
+            finally
+            {
+                // Release lock
+                _writeLock.ExitWriteLock();
+            }
+        }    
         public static void MakeConsoleLog(string logDescription)
         {
             string log;

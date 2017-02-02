@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using DTO.ControlPlane;
+using System.Threading;
 
 namespace ControlPlane
 {
@@ -23,6 +24,8 @@ namespace ControlPlane
 
         private Dictionary<int, bool> _isSnpRealiseAnswerBack;
         private Dictionary<int, bool> _snpRealiseAnswerBack;
+
+        public static readonly object SyncObject = new object();
         #endregion
 
         #region Properties
@@ -73,30 +76,40 @@ namespace ControlPlane
         #region PC_Cooperation_Methodes
         private void SendMessageToPC(SignalMessage message)
         {
+            Console.WriteLine
+                        ("|SIGNALLING|LRM| - SendMessageToPC - |" + message.General_SignalMessageType + "|");
+
             _pc.SendSignallingMessage(message);
-            SignallingNodeDeviceClass.MakeSignallingLog("LRM", "INFO - Signalling message send to PC module");
+            //SignallingNodeDeviceClass.MakeSignallingLog("LRM", "INFO - Signalling message send to PC module");
         }
         public void ReceiveMessageFromPC(SignalMessage message)
         {
+            Console.WriteLine
+                      ("|SIGNALLING|LRM| - ReceiveMessageFromPC - |" + message.General_SignalMessageType + "|");
+
+            Thread.Sleep(10);
+
             switch (message.General_SignalMessageType)
             {
                 case SignalMessage.SignalType.LinkConnectionRequest:
-                    LinkConnectionRequest(message.ConnnectionID, message.SnppIdPair, message.CallingCapacity);
-                    break;
-                case SignalMessage.SignalType.SNPNegotiation:
-                    SNPNegotiation(message.Negotiation_ID, message.Negotiation_ConnectionID, message.Negotiation_Label, message.Negotiation_SnppID, message.Negotiation_Capacity, message.General_SourceIpAddress);
-                    break;
-                case SignalMessage.SignalType.SNPNegotiationResponse:
-                    SNPNegotiationResponse(message.Negotiation_ID, message.IsAccepted, message.Negotiation_AllocatedSNP);
+                    LinkConnectionRequest(message.ConnnectionID, message.SnppIdPair, message.CallingCapacity, message.LinkConnection_ID);
                     break;
                 case SignalMessage.SignalType.LinkConnectionDealocation:
                     LinkConnectionDealocation(message.ConnnectionID, message.SnppIdPair);
                     break;
+
+                case SignalMessage.SignalType.SNPNegotiation:
+                     SNPNegotiation_Analyse(message.Negotiation_ID, message.Negotiation_ConnectionID, message.Negotiation_Label, message.Negotiation_SnppID, message.Negotiation_Capacity, message.General_SourceIpAddress);
+                    break;
+                case SignalMessage.SignalType.SNPNegotiationResponse:
+                    SNPNegotiationResponse_Analyse(message.Negotiation_ID, message.IsAccepted, message.Negotiation_AllocatedSNP);
+                    break;            
+
                 case SignalMessage.SignalType.SNPRealise:
                     SNPRealise(message.Negotiation_ID, message.Negotiation_SnppID, message.Negotiation_ConnectionID, message.General_SourceIpAddress);
                     break;
                 case SignalMessage.SignalType.SNPRealiseResponse:
-                    SNPRealiseResponse(message.Negotiation_ID, message.IsAccepted);
+                    SNPRealiseResponse_Analyse(message.Negotiation_ID, message.IsAccepted);
                     break;
                 default:
                     break;
@@ -105,7 +118,7 @@ namespace ControlPlane
         #endregion
 
         #region Incomming_Methodes_From_Standardization
-        private void LinkConnectionRequest(int connectionID, SignalMessage.Pair snpp_id_pair, int connectionCapacity)   //DOKOŃCZYC
+        private void LinkConnectionRequest(int connectionID, SignalMessage.Pair snpp_id_pair, int connectionCapacity, int LinkConnection_ID)   //DOKOŃCZYC
         {
             #region Odnajdywanie_SNPP_i_sprawdzenie_czy_istnieją
             //odnajdz pierwszy i drugi SNPP
@@ -133,7 +146,7 @@ namespace ControlPlane
                     {
                         second = _snppList[i];
                         break;
-                    }
+                    } 
 
                 //jeżeli nie ma takiego elementu to zwróć bład
                 if (second == null)
@@ -146,7 +159,7 @@ namespace ControlPlane
             if (first == null || second == null)
             {
                 //wyślij wiadomośc negatywną
-                LinkConnectionResponse(connectionID, false, null, null);
+                LinkConnectionResponse(connectionID, false, null, null, LinkConnection_ID);
 
                 //zakończ działanie metody
                 return;
@@ -177,45 +190,60 @@ namespace ControlPlane
             int numberOfIterations = 0;
             bool accept = false;
             List<int> negotiationIDList = new List<int>();
-            Random rnd = new Random();
 
             while (!accept)
             {
                 numberOfIterations++;
 
+                //wylosuj następną etykiete 
                 if (labelToForward == -1)
                     labelToForward = GetNextFreeLabel(first, second, numberOfIterations - 1);
 
+                //nie ma wolnej etykiety
                 if (labelToForward == -1)
                 {
                     //wyślij wiadomośc negatywną
-                    LinkConnectionResponse(connectionID, false, null, null);
+                    LinkConnectionResponse(connectionID, false, null, null, LinkConnection_ID);
                 }
+
                 else
                 {
-                    //losuje identyfikator negocjacji
-                    negotiationIDList.Add(rnd.Next());
-                    while (_isSnpNegotiationAnswerBack.ContainsKey(negotiationIDList[0]))
-                        negotiationIDList[0] = rnd.Next();
+                    #region Send_local_snp_negotiation
 
+                    //trzeba zablokować ten fragment kodu
+                    lock (SyncObject)
+                    {
+                        //dodaj nowe id (po kolei dodajemy, isSnpNegotiation jest ogólną listą, a negotiationIdList lokalną)
+                        negotiationIDList.Add(_isSnpNegotiationAnswerBack.Count);
 
-                    _isSnpNegotiationAnswerBack.Add(negotiationIDList[0], false);
-                    _snpNegotiatinAnswerBackAreaName.Add(negotiationIDList[0], _areaName);
+                        //zainicjuj słowniki (na razie do lokalnego LRM)
+                        _isSnpNegotiationAnswerBack.Add(negotiationIDList[0], false);
+                        _snpNegotiatinAnswerBackAreaName.Add(negotiationIDList[0], _areaName);
+                    }
 
                     //wysyłamy SNMNegotiation do lokalnego LRM
-                    SNPNegotiation(negotiationIDList[0], connectionID, labelToForward, second._localID, connectionCapacity);
+                    SNPNegotiation(
+                        negotiationIDList[0],
+                        connectionID,
+                        labelToForward,
+                        second._localID,
+                        connectionCapacity);
+                    #endregion
 
-                    //wysyłamy SNMNegotiation do pozostałych podsieci jeżeli jest taka konieczność
+                    #region Send_snp_negotiation_to_other_areas
+                    //pierwszy SNPP
                     if (first._areaName != _areaName)
                     {
-                        negotiationIDList.Add(rnd.Next());
-                        while (_isSnpNegotiationAnswerBack.ContainsKey(negotiationIDList[negotiationIDList.Count - 1]))
-                            negotiationIDList[negotiationIDList.Count - 1] = rnd.Next();
+                        //trzeba zablokować ten fragment kodu
+                        lock (SyncObject)
+                        {
+                            //dodaj nowe id
+                            negotiationIDList.Add(_isSnpNegotiationAnswerBack.Count);
 
-                        //utwórz wpisy w słownikach
-                        _isSnpNegotiationAnswerBack.Add(negotiationIDList[negotiationIDList.Count - 1], false);
-                        _snpNegotiatinAnswerBackAreaName.Add(negotiationIDList[negotiationIDList.Count - 1], first._areaName);
-
+                            //utwórz wpisy w słownikach
+                            _isSnpNegotiationAnswerBack.Add(negotiationIDList[negotiationIDList.Count - 1], false);
+                            _snpNegotiatinAnswerBackAreaName.Add(negotiationIDList[negotiationIDList.Count - 1], first._areaName);
+                        }
                         //znajdź adres PC odpowiedzialnego za dany LRM w sieci first._areaName
                         string destinationIpAddr = _lrmToSubnetworksDictionary[first._areaName];
 
@@ -229,15 +257,19 @@ namespace ControlPlane
                             destinationIpAddr);
                     }
 
+                    //drugiSNPP
                     if (second._areaName != _areaName)
                     {
-                        negotiationIDList.Add(rnd.Next());
-                        while (_isSnpNegotiationAnswerBack.ContainsKey(negotiationIDList[negotiationIDList.Count - 1]))
-                            negotiationIDList[negotiationIDList.Count - 1] = rnd.Next();
+                        //trzeba zablokować ten fragment kodu
+                        lock (SyncObject)
+                        {
+                            //dodaj nowe id
+                            negotiationIDList.Add(_isSnpNegotiationAnswerBack.Count);
 
-                        //utwórz wpisy w słownikach
-                        _isSnpNegotiationAnswerBack.Add(negotiationIDList[negotiationIDList.Count - 1], false);
-                        _snpNegotiatinAnswerBackAreaName.Add(negotiationIDList[negotiationIDList.Count - 1], second._areaName);
+                            //utwórz wpisy w słownikach
+                            _isSnpNegotiationAnswerBack.Add(negotiationIDList[negotiationIDList.Count - 1], false);
+                            _snpNegotiatinAnswerBackAreaName.Add(negotiationIDList[negotiationIDList.Count - 1], second._areaName);
+                        }
 
                         //znajdź adres PC odpowiedzialnego za dany LRM w sieci second._areaName
                         string destinationIpAddr = _lrmToSubnetworksDictionary[second._areaName];
@@ -251,16 +283,47 @@ namespace ControlPlane
                             connectionCapacity,
                             destinationIpAddr);
                     }
+                    #endregion
 
-                    //czekamy biernie na odpowiedzi wszystkie (min 1 max 3)
+                    #region Wait_until_all_response_comes
                     int waitingAnswerstToGet = negotiationIDList.Count;
                     while (waitingAnswerstToGet != 0)
                     {
-                        for (int i = 0; i < negotiationIDList.Count; i++)
-                            if (_isSnpNegotiationAnswerBack[(negotiationIDList[i])] == true)
-                                waitingAnswerstToGet--;
-                    }
+                        //przy każdej iteracji zaczynaj sprawdzanie od nowa
+                        waitingAnswerstToGet = negotiationIDList.Count;
 
+                        //tutaj można troche przysnąc
+                        Thread.Sleep(50);
+
+                        //możemy miec tylko 1 lub max 3 wiadomosci snpNegotiation
+                        switch (waitingAnswerstToGet)
+                        {
+                            case 1:
+                                for (int i = 0; i < negotiationIDList.Count; i++)
+                                    if (_isSnpNegotiationAnswerBack[(negotiationIDList[0])] == true)
+                                        waitingAnswerstToGet = 0;
+                                break;
+                            case 2:
+                                for (int i = 0; i < negotiationIDList.Count; i++)
+                                    if (_isSnpNegotiationAnswerBack[(negotiationIDList[0])] == true)
+                                        if (_isSnpNegotiationAnswerBack[(negotiationIDList[1])] == true)
+                                                waitingAnswerstToGet = 0;
+                                break;
+                            case 3:
+                                for (int i = 0; i < negotiationIDList.Count; i++)
+                                    if (_isSnpNegotiationAnswerBack[(negotiationIDList[0])] == true)
+                                        if (_isSnpNegotiationAnswerBack[(negotiationIDList[1])] == true)
+                                            if (_isSnpNegotiationAnswerBack[(negotiationIDList[2])] == true)
+                                                waitingAnswerstToGet = 0;
+                                break;
+                        }     
+                    }
+                    #endregion
+
+                    Thread.Sleep(50);
+
+
+                    #region Check_wheater_all_request_are_correct
                     //sprawdzamy, czy wszystkie odpowiedzi były prawidłowe
                     int numberOfAcceptAnswers = 0;
                     for (int i = 0; i < negotiationIDList.Count; i++)
@@ -274,20 +337,36 @@ namespace ControlPlane
                         accept = false;
                         //tutaj trzeba namierzyć tą która jest zła i wysłać Realise i ponownie spróbować losować jakąć czy coś
                     }
+                    #endregion
                 }
             }
+            #endregion
 
-            //------------------------------------------------------------------
-            // alokujemy SNP lokalnie (tylko pierwsza, bo druga mam w odpowiedzi)
-            int firstSnpID = first._allocatedSNP.Count + 1;
-            first._allocatedSNP.Add(new SNP { _snpID = firstSnpID, _snppID = first._localID, _connectionID = connectionID, _allocatedCapacity = connectionCapacity, _allocatedLabel = labelToForward });
+            #region Alocate_first_snp
+            //trzeba zablokować ten fragment kodu
+            int firstSnpID = -1;
+            lock (SyncObject)
+            {
+                // alokujemy SNP lokalnie (tylko pierwsza, bo druga mam w odpowiedzi)
+                firstSnpID = first._allocatedSNP.Count;
+                first._allocatedSNP.Add(new SNP
+                {
+                    _snpID = firstSnpID,
+                    _snppID = first._localID,
+                    _connectionID = connectionID,
+                    _allocatedCapacity = connectionCapacity,
+                    _allocatedLabel = labelToForward
+                });
+            }
+            #endregion
 
-            //------------------------------------------------------------------
-            // tworzymy odpowiedz (odpowiedz skłąda sie z listy SNP zaalokowanych oraz w takiej samej kolejności wypisanych areaName w drugij liscie
+            #region Make_and_sent_response_message
+            // tworzymy odpowiedz 
+            // odpowiedz skłąda sie z listy SNP zaalokowanych oraz w takiej samej kolejności wypisanych areaName w drugij liscie
             List<SNP> receivedSnps = new List<SNP>();
             List<string> receivedSnpsAreaNames = new List<string>();
 
-            //dodaj stwój lokalnie dodany SNP do listy
+            //dodaj swój lokalnie dodany SNP do listy
             receivedSnps.Add(first._allocatedSNP[firstSnpID]);
             receivedSnpsAreaNames.Add(_areaName);
 
@@ -299,7 +378,7 @@ namespace ControlPlane
             }
 
             //wyślij wiadomość potwierdzającą
-            LinkConnectionResponse(connectionID, true, receivedSnps, receivedSnpsAreaNames);
+            LinkConnectionResponse(connectionID, true, receivedSnps, receivedSnpsAreaNames, LinkConnection_ID);
             #endregion
         }
         private void LinkConnectionDealocation(int connectionID, SignalMessage.Pair snpp_id_pair)
@@ -399,7 +478,7 @@ namespace ControlPlane
             while (!accept)
             {
                 //losuje identyfikator negocjacji
-                dealocationIDList.Add(rnd.Next());
+                dealocationIDList.Add(rnd.Next(0,20));
                 while (_isSnpRealiseAnswerBack.ContainsKey(dealocationIDList[0]))
                     dealocationIDList[0] = rnd.Next();
 
@@ -425,7 +504,7 @@ namespace ControlPlane
                 //wysyłamy SNPRealise do pozostałych podsieci jeżeli jest taka konieczność
                 if (first._areaName != _areaName)
                 {
-                    dealocationIDList.Add(rnd.Next());
+                    dealocationIDList.Add(rnd.Next(20,40));
                     while (_isSnpRealiseAnswerBack.ContainsKey(dealocationIDList[dealocationIDList.Count - 1]))
                         dealocationIDList[dealocationIDList.Count - 1] = rnd.Next();
 
@@ -452,7 +531,7 @@ namespace ControlPlane
 
                 if (second._areaName != _areaName)
                 {
-                    dealocationIDList.Add(rnd.Next());
+                    dealocationIDList.Add(rnd.Next(20,40));
                     while (_isSnpRealiseAnswerBack.ContainsKey(dealocationIDList[dealocationIDList.Count - 1]))
                         dealocationIDList[dealocationIDList.Count - 1] = rnd.Next();
 
@@ -525,6 +604,7 @@ namespace ControlPlane
             SendMessageToPC(acceptedMessage);
             #endregion
         }
+
         private void SNPNegotiation_Analyse(int negotiationID, int connectionID, int label, int snppID, int connectionCapacity, string sourcePcIpAddress)
         {
             #region Odszukuje_obiekt_SNPP_o_zadanym_id
@@ -544,19 +624,7 @@ namespace ControlPlane
                 SignallingNodeDeviceClass.MakeSignallingConsoleLog("LRM", "ERROR (SnppNegotiation)- Cannot find the SNPP with ID equals " + snppID);
 
                 //zwróć odpowiedź negatywną
-                SignalMessage rejectedMessage = new SignalMessage()
-                {
-                    General_SignalMessageType = SignalMessage.SignalType.SNPNegotiationResponse,
-                    General_DestinationIpAddress = sourcePcIpAddress,
-                    General_SourceIpAddress = _localPcIpAddress,
-                    General_SourceModule = "LRM",
-                    General_DestinationModule = "LRM",
-
-                    Negotiation_ID = negotiationID,
-                    IsAccepted = false
-                };
-                //wyslij wiadomość i wyjdź z metody
-                SendMessageToPC(rejectedMessage);
+                SNPNegotiationResponse(negotiationID, false, null, sourcePcIpAddress);
                 return;
             }
             #endregion
@@ -564,34 +632,24 @@ namespace ControlPlane
             #region Sprawdzam_czy_etykieta_jest_wolna_i_wyslij_odpowiednia_wiadomosc
             if( requestedSnpp._availableLabels.Contains(label))
             {
-                //etykieta jest wolna
-                int index = requestedSnpp._allocatedSNP.Count;
-                SNP allocatedSnp = new SNP
+                SNP allocatedSnp = null;
+                lock (SyncObject)
                 {
-                    _snpID = index,
-                    _snppID = requestedSnpp._localID,
-                    _allocatedCapacity = connectionCapacity,
-                    _allocatedLabel = label,
-                    _connectionID = connectionID
-                };
-                requestedSnpp._allocatedSNP.Add(allocatedSnp);
-
+                    //etykieta jest wolna
+                    int index = requestedSnpp._allocatedSNP.Count;
+                    allocatedSnp = new SNP
+                    {
+                        _snpID = index,
+                        _snppID = requestedSnpp._localID,
+                        _allocatedCapacity = connectionCapacity,
+                        _allocatedLabel = label,
+                        _connectionID = connectionID
+                    };
+                    requestedSnpp._allocatedSNP.Add(allocatedSnp);
+                }
 
                 //wyślij odpowiedź zawierającą zaalokowane SNP
-                SignalMessage accepteddMessage = new SignalMessage()
-                {
-                    General_SignalMessageType = SignalMessage.SignalType.SNPNegotiationResponse,
-                    General_DestinationIpAddress = sourcePcIpAddress,
-                    General_SourceIpAddress = _localPcIpAddress,
-                    General_SourceModule = "LRM",
-                    General_DestinationModule = "LRM",
-
-                    Negotiation_ID = negotiationID,
-                    IsAccepted = true,
-                    Negotiation_AllocatedSNP = allocatedSnp
-                };
-                //wyslij wiadomość i wyjdź z metody
-                SendMessageToPC(accepteddMessage);
+                SNPNegotiationResponse(negotiationID, true, allocatedSnp, sourcePcIpAddress);
             }
             else
             {
@@ -600,24 +658,12 @@ namespace ControlPlane
                 SignallingNodeDeviceClass.MakeSignallingConsoleLog("LRM", "ERROR (SnppNegotiation)- Lable already in use: " + label);
 
                 //zwróć odpowiedź negatywną
-                SignalMessage rejectedMessage = new SignalMessage()
-                {
-                    General_SignalMessageType = SignalMessage.SignalType.SNPNegotiationResponse,
-                    General_DestinationIpAddress = sourcePcIpAddress,
-                    General_SourceIpAddress = _localPcIpAddress,
-                    General_SourceModule = "LRM",
-                    General_DestinationModule = "LRM",
-
-                    Negotiation_ID = negotiationID,
-                    IsAccepted = false
-                };
-                //wyslij wiadomość i wyjdź z metody
-                SendMessageToPC(rejectedMessage);
+                SNPNegotiationResponse(negotiationID, false, null, sourcePcIpAddress);
                 return;
             }
             #endregion
         }
-        private void SNPNegotiationResponse(int negotiationID, bool isAccepted, SNP allocatedSnp)
+        private void SNPNegotiationResponse_Analyse(int negotiationID, bool isAccepted, SNP allocatedSnp)
         {
             //ocznaczam, że otrzymałem wiadomość powrotną
             _isSnpNegotiationAnswerBack[negotiationID] = true;
@@ -625,6 +671,7 @@ namespace ControlPlane
             //wrzucam wiadomość zwrotną do słownika skojarzoną z tym samym negotiationID co reszta zmiennych w innych słownikach
             _snpNegotiationAnswerBack.Add(negotiationID, new SignalMessage { IsAccepted = isAccepted, Negotiation_AllocatedSNP = allocatedSnp });
         }
+
         private void SNPRealise(int dealocationID, int snppID, int connectionID, string sourcePcIpAddress)
         {
             #region Odszukuje_obiekt_SNPP_o_zadanym_id
@@ -717,14 +764,15 @@ namespace ControlPlane
             SendMessageToPC(acceptedMessage);
             #endregion
         }
-        private void SNPRealiseResponse(int dealocationID, bool isAccepted)
+        private void SNPRealiseResponse_Analyse(int dealocationID, bool isAccepted)
         {
             //ocznaczam, że otrzymałem wiadomość powrotną
             _isSnpRealiseAnswerBack[dealocationID] = true;
 
-            ////wrzucam wiadomość zwrotną do słownika skojarzoną z tym samym negotiationID co reszta zmiennych w innych słownikach
+            //wrzucam wiadomość zwrotną do słownika skojarzoną z tym samym negotiationID co reszta zmiennych w innych słownikach
             _snpRealiseAnswerBack.Add(dealocationID, isAccepted);
         }
+
         private void LocalTopology()
         {
 
@@ -733,7 +781,7 @@ namespace ControlPlane
 
 
         #region Outcomming_Methodes_From_Standardization
-        private void LinkConnectionResponse(int connectionID, bool isAccepted, List<SNP> allocatedSnpList, List<string> allocatedSnpAreaName)
+        private void LinkConnectionResponse(int connectionID, bool isAccepted, List<SNP> allocatedSnpList, List<string> allocatedSnpAreaName, int linkConnection_ID)
         {
             SignalMessage rejectedResponse = new SignalMessage()
             {
@@ -743,10 +791,12 @@ namespace ControlPlane
                 General_SourceModule = "LRM",
                 General_DestinationModule = "CC",
 
+                ConnnectionID = connectionID,
                 IsAccepted = isAccepted,
                 LinkConnection_AllocatedSnpList = allocatedSnpList,
-                LinkConnection_AllocatedSnpAreaNameList = allocatedSnpAreaName
+                LinkConnection_AllocatedSnpAreaNameList = allocatedSnpAreaName,
 
+                LinkConnection_ID = linkConnection_ID
             };
             SendMessageToPC(rejectedResponse);
         }
@@ -804,8 +854,23 @@ namespace ControlPlane
             };
             SendMessageToPC(snmOutSecondNegotiation);
         }
-        
-        
+
+        private void SNPNegotiationResponse(int negotiationID, bool isAccepted, SNP allocatedSnp, string destinationIpAddress)
+        {
+            SignalMessage snmOutSecondNegotiation = new SignalMessage()
+            {
+                General_SignalMessageType = SignalMessage.SignalType.SNPNegotiationResponse,
+                General_SourceIpAddress = _localPcIpAddress,
+                General_DestinationIpAddress = destinationIpAddress,
+                General_SourceModule = "LRM",
+                General_DestinationModule = "LRM",
+
+                Negotiation_ID = negotiationID,
+                IsAccepted = isAccepted,
+                Negotiation_AllocatedSNP = allocatedSnp
+            };
+            SendMessageToPC(snmOutSecondNegotiation);
+        }
         #endregion
 
 

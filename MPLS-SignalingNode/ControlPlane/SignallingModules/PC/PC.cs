@@ -6,8 +6,8 @@ using System.Net.Sockets;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization.Formatters.Binary;
 using DTO.ControlPlane;
+using System.Threading;
 
-//Tutaj musze zrobić wysyłanie pakietów 
 namespace ControlPlane
 {
 
@@ -112,7 +112,7 @@ namespace ControlPlane
             catch
             {
                 IPEndPoint unreachableHost = _receivingEndPoint as IPEndPoint;
-                SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Cannnot send packet to: IP:" + unreachableHost.Address + " Port: " + unreachableHost.Port + ". Destination unreachable (Port unreachable)");
+               // SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Cannnot send packet to: IP:" + unreachableHost.Address + " Port: " + unreachableHost.Port + ". Destination unreachable (Port unreachable)");
 
                 //ustawiam odpowiedni recivingEndPoint
                 _receivingIPEndPoint = new IPEndPoint(IPAddress.Any, _pcPort);
@@ -142,7 +142,7 @@ namespace ControlPlane
             _receivingEndPoint = (EndPoint)_receivingIPEndPoint;
 
             //tworzę logi
-            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Received packet from: IP:" + _receivedIPEndPoint.Address + " Port: " + _receivedIPEndPoint.Port);
+           // SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Received packet from: IP:" + _receivedIPEndPoint.Address + " Port: " + _receivedIPEndPoint.Port);
 
             //uruchamiam ponowne nasłuchiwanie
             _pcSocket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _receivingEndPoint, new AsyncCallback(ReceivedPacketCallback), null);
@@ -155,7 +155,7 @@ namespace ControlPlane
             var endPoint = res.AsyncState as IPEndPoint;
 
             //tworzę logi
-           SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Packet send to: IP:" + endPoint.Address + " Port: " + endPoint.Port);
+           //SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Packet send to: IP:" + endPoint.Address + " Port: " + endPoint.Port);
             
             int size = _pcSocket.EndSendTo(res);     
         }
@@ -175,6 +175,14 @@ namespace ControlPlane
         {
             SignalMessage receivedMessage = ByteToSignalMessage(receivedPacket);
             Delegate_ReceiveOutsideMessage receiveMessage = null;
+
+            Console.WriteLine
+                ("|SIGNALLING|PC| - ReceiveOutside - |" + receivedMessage.General_SignalMessageType +
+                        "| -  From:" + receivedMessage.General_SourceIpAddress + " - " +
+                        receivedMessage.General_SourceModule + "-" + receivedMessage.General_DestinationModule);
+
+            Thread.Sleep(50);
+
             switch (receivedMessage.General_DestinationModule)
             {
                 case "CC":
@@ -187,7 +195,7 @@ namespace ControlPlane
                     receiveMessage = new Delegate_ReceiveOutsideMessage(_moduleLRM.ReceiveMessageFromPC);
                     break;
                 default:
-                    SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
+                    //SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
                     break;
             }
             if (receiveMessage != null)
@@ -212,7 +220,7 @@ namespace ControlPlane
         }
         private static void SendInsideMessageCallback(IAsyncResult async)
         {
-            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Sent inside message");
+            //SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Sent inside message");
 
             //metoda wywoływana po wyjściu z metody SendInsideMessage
             AsyncResult ar = (AsyncResult)async;
@@ -224,6 +232,12 @@ namespace ControlPlane
         private void ReceiveInsideMessage(SignalMessage message)
         {
             Delegate_ReceiveInsideMessage receiveMessage = null;
+
+            Console.WriteLine
+                ("|SIGNALLING|PC| - ReceiveInside - |" + message.General_SignalMessageType +
+                "| - " +
+                message.General_SourceModule + "-" + message.General_DestinationModule);
+
 
             switch (message.General_DestinationModule)
             {
@@ -237,21 +251,23 @@ namespace ControlPlane
                     receiveMessage = new Delegate_ReceiveInsideMessage(_moduleLRM.ReceiveMessageFromPC);
                     break;
                 default:
-                    SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
+                    //SignallingNodeDeviceClass.MakeSignallingLog("PC", "ERROR - Destination module unknown.");
                     break;
             }
 
             if(receiveMessage != null)
                 receiveMessage.BeginInvoke(message, new AsyncCallback(ReceiveInsideMessageCallback), null);
+               
         }
         private static void ReceiveInsideMessageCallback(IAsyncResult async)
         {
-            SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Received inside message");
-
             //metoda wywoływana po wyjściu z metody ReceiveInsideMessage
             AsyncResult ar = (AsyncResult)async;
             Delegate_ReceiveInsideMessage del = (Delegate_ReceiveInsideMessage)ar.AsyncDelegate;
-            del.EndInvoke(async);    
+            del.EndInvoke(async);
+            
+
+            //SignallingNodeDeviceClass.MakeSignallingLog("PC", "INFO - Received inside message");     
         }
         #endregion
 
@@ -262,14 +278,28 @@ namespace ControlPlane
             //trzeba jakoś sprawdzić, czy ma wysyłać wiadomość wewnętrzną, czy zewnętrzną
             bool insideMessage = CheckIfMessageIsInsideOrOutside(message);
 
-            if(insideMessage)
+            if (insideMessage)
             {
+                Console.WriteLine
+                     ("|SIGNALLING|PC| - SendInside - |" + message.General_SignalMessageType +
+                      "| - " +
+                      message.General_SourceModule + "-" + message.General_DestinationModule);
+
+                Thread.Sleep(50);
+
                 //inicjalizacja delegata
                 Delegate_SendInsideMessage sendMessage = new Delegate_SendInsideMessage(SendInsideMessage);
                 sendMessage.BeginInvoke(message, new AsyncCallback(SendInsideMessageCallback), null);
             }
             else
             {
+                Console.WriteLine
+                    ("|SIGNALLING|PC| - SendOutside - " + message.General_SignalMessageType +
+                     " -  To:" + message.General_DestinationIpAddress + " - " +
+                     message.General_SourceModule + "-" + message.General_DestinationModule);
+
+                Thread.Sleep(50);
+
                 string destinationIP = message.General_DestinationIpAddress;
                 byte[] data = SignalMessageToByte(message);
 

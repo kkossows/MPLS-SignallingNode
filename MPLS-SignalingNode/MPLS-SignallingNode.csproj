@@ -49,17 +49,28 @@
     <Compile Include="ControlPlane\SignallingModules\CC\ConnectionTableRecord.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM_LoadingXmlFile.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM_XmlSchema.cs" />
+    <Compile Include="ControlPlane\SignallingModules\NCC\DirectoryClass.cs" />
+    <Compile Include="ControlPlane\SignallingModules\NCC\NCC.cs" />
+    <Compile Include="ControlPlane\SignallingModules\NCC\NCC_LoadingXmlFile.cs" />
+    <Compile Include="ControlPlane\SignallingModules\NCC\NCC_XmlSchame.cs" />
+    <Compile Include="ControlPlane\SignallingModules\NCC\PolicyClass.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC_LoadingXmlFile.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC_XmlSchema.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Dijkstra.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Edge.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Graph.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Lrm.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Path.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\RC.cs" />
     <Compile Include="ControlPlane\SignallingModules\RC\RC_LoadingXmlFile.cs" />
     <Compile Include="ControlPlane\SignallingModules\RC\RC_XmlSchema.cs" />
+    <Compile Include="ControlPlane\SignallingModules\RC\Vertex.cs" />
     <Compile Include="DeviceClass.cs" />
     <Compile Include="ControlPlane\SignallingModules\LRM\LRM.cs" />
     <Compile Include="ControlPlane\SignallingModules\PC\PC.cs" />
     <Compile Include="SignallingNodeDeviceClass.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ControlPlane\SignallingModules\RC\RC.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -70,6 +81,7 @@
       <Name>DTO.ControlPlane</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

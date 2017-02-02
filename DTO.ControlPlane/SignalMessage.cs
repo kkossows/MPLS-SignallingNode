@@ -46,6 +46,7 @@ namespace DTO.ControlPlane
         #region LinkConnectionRequest_LinkConnectionResponse
         public List<SNP> LinkConnection_AllocatedSnpList { get; set; }
         public List<string> LinkConnection_AllocatedSnpAreaNameList { get; set; }
+        public int LinkConnection_ID { get; set; }
         #endregion
 
         #region SnppNegotiation_SnppNegotiationResponse
@@ -58,6 +59,22 @@ namespace DTO.ControlPlane
         public SNP Negotiation_AllocatedSNP { get; set; }
         #endregion
 
+        #region PeerCoordination
+        public int SnppInId { get; set; }
+        #endregion
+
+        #region New_Variables_connected_with_rc_and_lrm
+        public int LocalTopology_SnppID { get; set; }
+        public int LocalTopology_availibleCapacity { get; set; }
+        public List<int> LocalTopology_reachableSnppIdList { get; set; }
+        public string LocalTopology_areaName { get; set; }
+
+        public string IsUpKeepAlive_areaName { get; set; }
+        #endregion
+
+        #region New_Variables_NCC
+        public bool Confirmation { get; set; }
+        #endregion
 
 
         [Serializable]
@@ -70,7 +87,7 @@ namespace DTO.ControlPlane
         public enum SignalType
         {
             //CPCC
-            CallRequest, CallAccept,
+            CallRequest, CallAccept, CallIndication, CallModificationIndication, CallModificationAccept, CallCoordination,
             
             //LRM
             LinkConnectionRequest, SNPNegotiation, LinkConnectionDealocation, SNPRealise, LocalTopology,
@@ -78,7 +95,11 @@ namespace DTO.ControlPlane
 
             //CC
             ConnectionRequest, RouteQueryResponse, PeerCoordination,
-            ConnectionResponse, RouteQuery, PeerCoordinationOut
+            ConnectionResponse, RouteQuery, PeerCoordinationResponse,
+            ConnectionRealise,
+
+            //RC
+            IsUp, KeepAlive
         };
 
         [Serializable]
